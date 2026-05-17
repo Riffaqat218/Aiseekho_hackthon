@@ -9,8 +9,8 @@ void main() async {
   
   // Initialize Supabase (Replace with your actual Supabase URL and Anon Key)
   await Supabase.initialize(
-    url: const String.fromEnvironment('SUPABASE_URL', defaultValue: 'YOUR_SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'YOUR_SUPABASE_ANON_KEY'),
+    url: const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://ezsybiaqitlwplbxhqvb.supabase.co'),
+    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_OpSLuXc3WTmYKUhlqYCHhA_Yv88EVTz'),
   );
 
   runApp(const ProviderScope(child: WazifaApp()));
