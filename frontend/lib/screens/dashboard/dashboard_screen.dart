@@ -28,9 +28,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     setState(() => _isLoading = true);
     final api = ref.read(apiServiceProvider);
     
-    final profile = await api.getProfile();
-    final matchedGroups = await api.getMatchedScholarships();
-    final traces = await api.getTraces();
+    final results = await Future.wait([
+      api.getProfile(),
+      api.getMatchedScholarships(),
+      api.getTraces(),
+    ]);
+
+    final profile = results[0] as Map<String, dynamic>?;
+    final matchedGroups = (results[1] ?? {}) as Map<String, dynamic>;
+    final traces = (results[2] ?? []) as List<dynamic>;
 
     int matchedCount = 0;
     matchedGroups.forEach((country, list) {

@@ -53,6 +53,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _selectedDegree = profile['degree_level'];
         }
       });
+    } else {
+      // Display a beautiful error banner to guide physical phone setup
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Connection Timeout: Could not reach NestJS backend. Enter your computer\'s local IP address at the bottom of this page!'),
+            duration: Duration(seconds: 8),
+            backgroundColor: AppConstants.errorColor,
+          ),
+        );
+      });
     }
     setState(() => _isLoading = false);
   }
