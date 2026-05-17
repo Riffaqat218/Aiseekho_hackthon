@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants.dart';
+import '../../core/translations.dart';
+import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -73,10 +75,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentLang = ref.watch(languageProvider);
+
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
       appBar: AppBar(
-        title: const Text('Readiness Dashboard'),
+        title: Text(Translations.getText('dashboard_title', currentLang)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -135,9 +139,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                       ),
                                 ),
                                 Text(
-                                  _profile == null ? 'Complete Profile' : 'Ready for HEC',
+                                  _profile == null 
+                                      ? Translations.getText('complete_profile_prompt', currentLang) 
+                                      : Translations.getText('ready_for_hec', currentLang),
+                                  textAlign: TextAlign.center,
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: Colors.grey.shade500,
+                                        fontSize: 12,
                                       ),
                                 ),
                               ],
@@ -151,7 +159,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                   // Before vs After Section
                   Text(
-                    'Agent Impact Metrics',
+                    Translations.getText('agent_impact', currentLang),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
@@ -160,9 +168,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       Expanded(
                         child: _buildMetricCard(
                           context,
-                          title: 'Before Agent',
+                          title: Translations.getText('before_agent', currentLang),
                           value: '0',
-                          subtitle: 'Matched Scholarships',
+                          subtitle: Translations.getText('matched_scholarships', currentLang),
                           color: Colors.grey.shade400,
                         ),
                       ),
@@ -170,9 +178,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       Expanded(
                         child: _buildMetricCard(
                           context,
-                          title: 'After Agent',
+                          title: Translations.getText('after_agent', currentLang),
                           value: _matchedCount.toString(),
-                          subtitle: 'Matched Scholarships',
+                          subtitle: Translations.getText('matched_scholarships', currentLang),
                           color: AppConstants.secondaryColor,
                         ),
                       ),
@@ -184,9 +192,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       Expanded(
                         child: _buildMetricCard(
                           context,
-                          title: 'Actions Simulated',
+                          title: Translations.getText('actions_simulated', currentLang),
                           value: _actionsTaken.toString(),
-                          subtitle: 'Fills, Emails, Calendars',
+                          subtitle: Translations.getText('actions_sub', currentLang),
                           color: AppConstants.primaryColor,
                         ),
                       ),
@@ -195,7 +203,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   
                   const SizedBox(height: 32),
                   // Antigravity Live Trace Panel for Judges
-                  _buildLiveTracePanel(context),
+                  _buildLiveTracePanel(context, currentLang),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -248,7 +256,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildLiveTracePanel(BuildContext context) {
+  Widget _buildLiveTracePanel(BuildContext context, String currentLang) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -278,9 +286,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               children: [
                 const Icon(Icons.code_rounded, color: AppConstants.secondaryColor, size: 18),
                 const SizedBox(width: 8),
-                const Text(
-                  'Antigravity Live Agent Trace',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace'),
+                Text(
+                  Translations.getText('live_trace', currentLang),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace'),
                 ),
                 const Spacer(),
                 Container(
@@ -299,11 +307,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             height: 250,
             padding: const EdgeInsets.all(12),
             child: _traces.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      'No agent cycles recorded yet.\nComplete your profile and run an Action Chain to view Antigravity execution steps.',
+                      Translations.getText('no_traces', currentLang),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 11, fontFamily: 'monospace'),
+                      style: const TextStyle(color: Colors.grey, fontSize: 11, fontFamily: 'monospace'),
                     ),
                   )
                 : ListView.builder(

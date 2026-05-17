@@ -70,6 +70,11 @@ CREATE TABLE public.student_profiles (
   cgpa NUMERIC(3,2),
   field_of_study TEXT,
   degree_level TEXT,
+  has_domicile BOOLEAN DEFAULT FALSE,
+  has_passport BOOLEAN DEFAULT FALSE,
+  has_ielts BOOLEAN DEFAULT FALSE,
+  has_cnic BOOLEAN DEFAULT FALSE,
+  has_income BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL
 );

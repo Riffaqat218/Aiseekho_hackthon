@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants.dart';
+import '../../core/translations.dart';
+import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 
 class ScholarshipsScreen extends ConsumerStatefulWidget {
@@ -14,6 +16,15 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
   TabController? _tabController;
   Map<String, dynamic> _matchedGroups = {};
   bool _isLoading = false;
+
+  // Profile Documents State for dynamic Gap Radar
+  Map<String, dynamic>? _profile;
+  bool _hasCnic = false;
+  bool _hasDomicile = false;
+  bool _hasPassport = false;
+  bool _hasIelts = false;
+  bool _hasIncome = false;
+  bool _hasTranscript = false;
 
   @override
   void initState() {
@@ -29,11 +40,28 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
 
   Future<void> _loadScholarships() async {
     setState(() => _isLoading = true);
-    final groups = await ref.read(apiServiceProvider).getMatchedScholarships();
+    final api = ref.read(apiServiceProvider);
     
-    // Sort and save countries
+    // Fetch scholarships and user profile in parallel to avoid hangs
+    final results = await Future.wait([
+      api.getMatchedScholarships(),
+      api.getProfile(),
+    ]);
+
+    final groups = (results[0] ?? {}) as Map<String, dynamic>;
+    final profile = results[1] as Map<String, dynamic>?;
+    
     setState(() {
       _matchedGroups = groups;
+      _profile = profile;
+      if (profile != null) {
+        _hasCnic = profile['has_cnic'] ?? false;
+        _hasDomicile = profile['has_domicile'] ?? false;
+        _hasPassport = profile['has_passport'] ?? false;
+        _hasIelts = profile['has_ielts'] ?? false;
+        _hasIncome = profile['has_income'] ?? false;
+        _hasTranscript = profile['cgpa'] != null;
+      }
       final countries = _matchedGroups.keys.toList();
       _tabController = TabController(
         length: countries.isEmpty ? 1 : countries.length,
@@ -55,14 +83,36 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     );
   }
 
+  bool _isDocAvailable(String docName) {
+    final d = docName.toLowerCase();
+    if (d.contains('transcript') || d.contains('marksheet')) return _hasTranscript;
+    if (d.contains('domicile')) return _hasDomicile;
+    if (d.contains('passport')) return _hasPassport;
+    if (d.contains('ielts') || d.contains('toefl') || d.contains('english')) return _hasIelts;
+    if (d.contains('cnic') || d.contains('identity') || d.contains('card')) return _hasCnic;
+    if (d.contains('income') || d.contains('recommendation') || d.contains('finance')) return _hasIncome;
+    return false;
+  }
+
+  String _getAcquisitionTimeline(String docName) {
+    final d = docName.toLowerCase();
+    if (d.contains('domicile')) return '2 wks';
+    if (d.contains('passport')) return '4 wks';
+    if (d.contains('ielts') || d.contains('toefl')) return '3 wks';
+    if (d.contains('cnic')) return '1 wk';
+    if (d.contains('income')) return '2 wks';
+    return '1 wk';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentLang = ref.watch(languageProvider);
     final countries = _matchedGroups.keys.toList();
 
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
       appBar: AppBar(
-        title: const Text('Matched Scholarships'),
+        title: Text(Translations.getText('scholarship_title', currentLang)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -86,7 +136,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppConstants.primaryColor))
           : countries.isEmpty
-              ? _buildEmptyState()
+              ? _buildEmptyState(currentLang)
               : TabBarView(
                   controller: _tabController,
                   children: countries.map((country) {
@@ -96,7 +146,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
                       itemCount: list.length,
                       itemBuilder: (context, index) {
                         final s = list[index];
-                        return _buildScholarshipCard(s);
+                        return _buildScholarshipCard(s, currentLang);
                       },
                     );
                   }).toList(),
@@ -104,7 +154,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String currentLang) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -113,15 +163,10 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
           children: [
             Icon(Icons.school_outlined, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
-            const Text(
-              'No Matched Scholarships Yet',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Please complete your student profile first (inside Tab 2: Profile) to scan your marksheet and run the Matching Agent!',
+            Text(
+              Translations.getText('empty_scholarships', currentLang),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ],
         ),
@@ -129,7 +174,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     );
   }
 
-  Widget _buildScholarshipCard(Map<String, dynamic> s) {
+  Widget _buildScholarshipCard(Map<String, dynamic> s, String currentLang) {
     final docs = List<String>.from(s['required_documents']);
     
     return Container(
@@ -179,33 +224,42 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
             children: [
               const Icon(Icons.grade_outlined, size: 16, color: Colors.grey),
               const SizedBox(width: 6),
-              Text('Min. CGPA Required: ${s['min_cgpa']}', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+              Text(
+                '${Translations.getText('min_cgpa', currentLang)}: ${s['min_cgpa']}', 
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 12)
+              ),
               const Spacer(),
               const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.grey),
               const SizedBox(width: 6),
-              Text('Deadline: ${s['deadline']}', style: const TextStyle(color: AppConstants.errorColor, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(
+                '${Translations.getText('deadline', currentLang)}: ${s['deadline']}', 
+                style: const TextStyle(color: AppConstants.errorColor, fontSize: 12, fontWeight: FontWeight.bold)
+              ),
             ],
           ),
           const Divider(height: 24),
           
           Text(
-            'Required Checklist:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey.shade600),
+            Translations.getText('gap_radar', currentLang),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppConstants.primaryColor),
           ),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
             runSpacing: 4,
             children: docs.map((d) {
-              final isTranscript = d.toLowerCase().contains('transcript');
+              final available = _isDocAvailable(d);
               return Chip(
                 avatar: Icon(
-                  isTranscript ? Icons.check_circle_rounded : Icons.pending_rounded,
+                  available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
                   size: 14,
-                  color: isTranscript ? Colors.green : Colors.orange,
+                  color: available ? Colors.green : Colors.orange,
                 ),
-                label: Text(d, style: const TextStyle(fontSize: 11)),
-                backgroundColor: isTranscript ? Colors.green.shade50 : Colors.orange.shade50,
+                label: Text(
+                  available ? '$d (Available)' : '$d (Missing - Timeline: ${_getAcquisitionTimeline(d)})', 
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)
+                ),
+                backgroundColor: available ? Colors.green.shade50 : Colors.orange.shade50,
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,
               );
@@ -216,7 +270,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
           ElevatedButton.icon(
             onPressed: () => _simulateActions(s),
             icon: const Icon(Icons.bolt, size: 18),
-            label: const Text('Apply & Run AI Agent Action Chain'),
+            label: Text(Translations.getText('apply_button', currentLang)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppConstants.primaryColor,
               foregroundColor: Colors.white,
@@ -424,6 +478,21 @@ class _ActionSimulationSheetState extends ConsumerState<_ActionSimulationSheet> 
                           _buildDetailRow('Description', _results!['calendarEvent']['description']),
                           _buildDetailRow('Alert Priority', 'Scheduled (7 days before)'),
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Output Action 4: Simulated AI Statement of Purpose (SOP) Paragraph
+                    _buildOutcomeCard(
+                      title: 'Action 4: Simulated AI SOP Intro Generator',
+                      icon: Icons.article_rounded,
+                      content: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                        child: Text(
+                          "As a dedicated graduate in ${_results!['simulatedForm']['major'] ?? 'Software Engineering'} from ${_results!['simulatedForm']['previousInstitution'] ?? 'NUST Islamabad'} with a CGPA of ${_results!['simulatedForm']['cgpa']?.toString() ?? '3.85'}, my academic excellence and research drive inspire my aspiration to pursue advanced studies in this field. Securing the prestigious ${widget.scholarship['name'] ?? 'Fulbright Scholarship'} represents the ideal catalyst to align my background with impactful global solutions, contributing directly to technological progress in Pakistan.",
+                          style: const TextStyle(fontFamily: 'serif', fontSize: 12, height: 1.45, fontStyle: FontStyle.italic, color: Colors.black87),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
