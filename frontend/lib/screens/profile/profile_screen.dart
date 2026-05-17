@@ -192,7 +192,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         backgroundColor: AppConstants.secondaryColor,
       ),
     );
-   @override
+  }
+
+  @override
   Widget build(BuildContext context) {
     final currentLang = ref.watch(languageProvider);
 
