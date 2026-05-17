@@ -1,4 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// State Provider to hold the current language ('en' for English, 'ur' for Urdu)
-final languageProvider = StateProvider<String>((ref) => 'en');
+// Notifier to hold the current language ('en' for English, 'ur' for Urdu)
+class LanguageNotifier extends Notifier<String> {
+  @override
+  String build() => 'en';
+
+  void toggle() {
+    state = state == 'en' ? 'ur' : 'en';
+  }
+}
+
+final languageProvider = NotifierProvider<LanguageNotifier, String>(LanguageNotifier.new);
