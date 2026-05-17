@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dashboard/dashboard_screen.dart';
-import 'vault/vault_screen.dart';
-import 'radar/radar_screen.dart';
+import 'profile/profile_screen.dart';
+import 'scholarships/scholarships_screen.dart';
 import '../core/constants.dart';
 
 class MainLayout extends ConsumerStatefulWidget {
@@ -17,8 +17,8 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const VaultScreen(),
-    const RadarScreen(),
+    const ProfileScreen(),
+    const ScholarshipsScreen(),
   ];
 
   @override
@@ -36,21 +36,23 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
         unselectedItemColor: Colors.grey.shade400,
         backgroundColor: Colors.white,
         elevation: 10,
+        type: BottomNavigationBarType.fixed, // Ensure elegant stable look
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_rounded),
             label: 'Dashboard',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.document_scanner_rounded),
-            label: 'Doc Vault',
+            icon: Icon(Icons.person_rounded),
+            label: 'Profile',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.radar_rounded),
-            label: 'Gap Radar',
+            icon: Icon(Icons.school_rounded),
+            label: 'Scholarships',
           ),
         ],
       ),
     );
   }
 }
+

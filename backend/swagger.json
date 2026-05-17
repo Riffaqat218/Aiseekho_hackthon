@@ -175,6 +175,144 @@
           "chat"
         ]
       }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "operationId": "ProfileController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user profile",
+        "tags": [
+          "profile"
+        ]
+      },
+      "post": {
+        "operationId": "ProfileController_updateProfile",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update or create current user profile",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/api/v1/profile/scan": {
+      "post": {
+        "operationId": "ProfileController_scanDocument",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Scan marksheet or transcript image using Gemini Vision OCR",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/api/v1/scholarships": {
+      "get": {
+        "operationId": "ScholarshipController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all pre-seeded scholarships",
+        "tags": [
+          "scholarships"
+        ]
+      }
+    },
+    "/api/v1/scholarships/matched": {
+      "get": {
+        "operationId": "ScholarshipController_getMatched",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get matched scholarships grouped by country",
+        "tags": [
+          "scholarships"
+        ]
+      }
+    },
+    "/api/v1/scholarships/apply": {
+      "post": {
+        "operationId": "ScholarshipController_apply",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run Action Simulation Engine",
+        "tags": [
+          "scholarships"
+        ]
+      }
+    },
+    "/api/v1/scholarships/traces": {
+      "get": {
+        "operationId": "ScholarshipController_getTraces",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get live action traces for the debug panel",
+        "tags": [
+          "scholarships"
+        ]
+      }
     }
   },
   "info": {
