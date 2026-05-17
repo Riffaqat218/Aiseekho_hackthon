@@ -5,6 +5,7 @@ import '../../widgets/common/primary_button.dart';
 import '../../widgets/common/language_switch.dart';
 import '../../core/constants.dart';
 import '../../providers/language_provider.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -14,29 +15,51 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   void _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
     
-    // Simulate API Call / Supabase Auth
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      // Navigate to dashboard
-      context.go('/dashboard');
+    try {
+      final authService = ref.read(authServiceProvider);
+      await authService.signInWithEmail(email, password);
+      
+      if (mounted) {
+        context.go('/dashboard');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -47,12 +70,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
               
               // Language Switch at the top
               const Align(
@@ -60,7 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: LanguageSwitch(),
               ),
               
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
               
               // App Logo / Title
               Container(
@@ -97,7 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               
-              const Spacer(),
+              const SizedBox(height: 40),
               
               // Login Form
               Container(
@@ -116,11 +139,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   children: [
                     TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: isUrdu ? 'فون نمبر' : 'Phone Number',
-                        prefixIcon: const Icon(Icons.phone),
+                        labelText: isUrdu ? 'ای میل' : 'Email Address',
+                        prefixIcon: const Icon(Icons.email),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: isUrdu ? 'پاس ورڈ' : 'Password',
+                        prefixIcon: const Icon(Icons.lock),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
                         ),
@@ -128,7 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     PrimaryButton(
-                      text: isUrdu ? 'لاگ ان کریں' : 'Continue with Phone',
+                      text: isUrdu ? 'لاگ ان کریں' : 'Continue with Email',
                       onPressed: _handleLogin,
                       isLoading: _isLoading,
                     ),

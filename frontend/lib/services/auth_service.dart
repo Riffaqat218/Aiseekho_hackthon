@@ -12,25 +12,27 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Initiate OTP Login
-  Future<void> signInWithPhone(String phoneNumber) async {
+  /// Sign in with Email and Password
+  Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
-      await _supabase.auth.signInWithOtp(phone: phoneNumber);
+      return await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
     } catch (e) {
-      throw Exception('Failed to send OTP: $e');
+      throw Exception('Failed to sign in: $e');
     }
   }
 
-  /// Verify OTP
-  Future<AuthResponse> verifyOTP(String phoneNumber, String token) async {
+  /// Register with Email and Password
+  Future<AuthResponse> signUpWithEmail(String email, String password) async {
     try {
-      return await _supabase.auth.verifyOTP(
-        phone: phoneNumber,
-        token: token,
-        type: OtpType.sms,
+      return await _supabase.auth.signUp(
+        email: email,
+        password: password,
       );
     } catch (e) {
-      throw Exception('Failed to verify OTP: $e');
+      throw Exception('Failed to register: $e');
     }
   }
 

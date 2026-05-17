@@ -5,7 +5,7 @@ import '../../core/constants.dart';
 
 final traceStreamProvider = StreamProvider<TraceLog>((ref) {
   final aiService = ref.read(aiServiceProvider);
-  return aiService.getAgentTraceStream();
+  return aiService.getAgentTraceStream("Explain how the Wazifa app AI works.");
 });
 
 class TracePanel extends ConsumerStatefulWidget {
