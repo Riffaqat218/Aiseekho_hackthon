@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+dist
+npm-debug.log
+.env
+.env.test
+.env.production
+README.md
+Dockerfile
+.dockerignore

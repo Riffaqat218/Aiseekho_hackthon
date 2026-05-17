@@ -1,0 +1,273 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login with email and password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Register with email and password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/chat/send": {
+      "post": {
+        "operationId": "ChatController_sendMessage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI Reply",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a message to the AI (non-streaming for mock)",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/chat/stream": {
+      "post": {
+        "operationId": "ChatController_streamMessage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stream AI response (Server-Sent Events)",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/chat/history": {
+      "get": {
+        "operationId": "ChatController_getHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of past messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user conversation history",
+        "tags": [
+          "chat"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Wazifa AI API",
+    "description": "The Wazifa backend API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "AuthDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "ChatMessageDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Hello AI, how are you?"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ChatResponseDto": {
+        "type": "object",
+        "properties": {
+          "reply": {
+            "type": "string",
+            "example": "I am doing well, thank you!"
+          }
+        },
+        "required": [
+          "reply"
+        ]
+      },
+      "ChatHistoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "msg_123"
+          },
+          "role": {
+            "type": "string",
+            "example": "user"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello AI"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "content"
+        ]
+      }
+    }
+  }
+}

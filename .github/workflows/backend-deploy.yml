@@ -1,0 +1,54 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Run Backend Tests
+      working-directory: ./backend
+      run: |
+        npm ci
+        npm run test
+
+    # In a real scenario, you'd add steps here to auth with Google Cloud
+    # and deploy the Docker image to Cloud Run. For example:
+    #
+    # - name: Google Auth
+    #   id: auth
+    #   uses: 'google-github-actions/auth@v2'
+    #   with:
+    #     credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+    #
+    # - name: Build and Deploy to Cloud Run
+    #   id: deploy
+    #   uses: 'google-github-actions/deploy-cloudrun@v2'
+    #   with:
+    #     service: 'wazifa-backend'
+    #     source: './backend'
+    #     region: 'us-central1'
+    #     env_vars: |
+    #       SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+    #       SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+    #       OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+    
+    - name: Deployment Success Notification
+      run: echo "Backend deployment triggered successfully."

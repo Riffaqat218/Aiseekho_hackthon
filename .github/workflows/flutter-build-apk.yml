@@ -1,0 +1,57 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/flutter-build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        # Optional: pin flutter version
+        # flutter-version: '3.x.x'
+
+    - name: Install Dependencies
+      working-directory: ./frontend
+      run: flutter pub get
+
+    - name: Run Tests
+      working-directory: ./frontend
+      run: flutter test
+
+    - name: Build APK
+      working-directory: ./frontend
+      run: flutter build apk --release
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: wazifa-release-apk
+        path: frontend/build/app/outputs/flutter-apk/app-release.apk
+
+    # For a real CI pipeline, you can add Firebase App Distribution here:
+    # - name: Upload to Firebase App Distribution
+    #   uses: wzieba/Firebase-Distribution-Github-Action@v1
+    #   with:
+    #     appId: ${{ secrets.FIREBASE_APP_ID }}
+    #     token: ${{ secrets.FIREBASE_TOKEN }}
+    #     groups: testers
+    #     file: frontend/build/app/outputs/flutter-apk/app-release.apk
