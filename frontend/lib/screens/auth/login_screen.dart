@@ -18,8 +18,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isSignUp = false;
 
-  void _handleLogin() async {
+  void _handleSubmit() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
@@ -30,16 +31,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
+    if (_isSignUp && password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
     
     try {
       final authService = ref.read(authServiceProvider);
-      await authService.signInWithEmail(email, password);
-      
-      if (mounted) {
-        context.go('/dashboard');
+
+      if (_isSignUp) {
+        await authService.signUpWithEmail(email, password);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created successfully! You can now log in.')),
+          );
+          setState(() {
+            _isSignUp = false;
+          });
+        }
+      } else {
+        await authService.signInWithEmail(email, password);
+        if (mounted) {
+          context.go('/dashboard');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -122,7 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               
               const SizedBox(height: 40),
               
-              // Login Form
+              // Login / Sign Up Form
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -163,9 +183,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     PrimaryButton(
-                      text: isUrdu ? 'لاگ ان کریں' : 'Continue with Email',
-                      onPressed: _handleLogin,
+                      text: _isSignUp
+                          ? (isUrdu ? 'اکاؤنٹ بنائیں' : 'Create Account')
+                          : (isUrdu ? 'لاگ ان کریں' : 'Continue with Email'),
+                      onPressed: _handleSubmit,
                       isLoading: _isLoading,
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isSignUp = !_isSignUp;
+                        });
+                      },
+                      child: Text.rich(
+                        TextSpan(
+                          text: _isSignUp
+                              ? (isUrdu ? 'پہلے سے اکاؤنٹ ہے؟ ' : 'Already have an account? ')
+                              : (isUrdu ? 'نیا اکاؤنٹ بنائیں؟ ' : "Don't have an account? "),
+                          style: TextStyle(color: Colors.grey.shade600),
+                          children: [
+                            TextSpan(
+                              text: _isSignUp
+                                  ? (isUrdu ? 'لاگ ان' : 'Log In')
+                                  : (isUrdu ? 'سائن اپ' : 'Sign Up'),
+                              style: const TextStyle(
+                                color: AppConstants.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
