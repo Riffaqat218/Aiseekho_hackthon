@@ -77,8 +77,8 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
             : TabBar(
                 controller: _tabController,
                 isScrollable: true,
-                selectedColor: AppConstants.primaryColor,
-                unselectedColor: Colors.grey,
+                labelColor: AppConstants.primaryColor,
+                unselectedLabelColor: Colors.grey,
                 indicatorColor: AppConstants.primaryColor,
                 tabs: countries.map((c) => Tab(text: c)).toList(),
               ),

@@ -246,7 +246,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey.shade950,
+        color: const Color(0xFF0A0A0A),
         borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
         boxShadow: [
           BoxShadow(
