@@ -219,10 +219,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Camera Ingestion Header Card
-                  _buildScanningCard(context, currentLang),
-                  const SizedBox(height: 24),
-
                   // Profile Edit Form
                   Text(
                     Translations.getText('details_title', currentLang),
@@ -365,105 +361,69 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
           const SizedBox(height: 16),
-          _buildDocSwitch(Translations.getText('domicile', currentLang), _hasDomicile, (val) => setState(() => _hasDomicile = val)),
+          _buildDocUploadRow(Translations.getText('domicile', currentLang), _hasDomicile, 'domicile', currentLang),
           const Divider(),
-          _buildDocSwitch(Translations.getText('passport', currentLang), _hasPassport, (val) => setState(() => _hasPassport = val)),
+          _buildDocUploadRow(Translations.getText('passport', currentLang), _hasPassport, 'passport', currentLang),
           const Divider(),
-          _buildDocSwitch(Translations.getText('ielts', currentLang), _hasIelts, (val) => setState(() => _hasIelts = val)),
+          _buildDocUploadRow(Translations.getText('ielts', currentLang), _hasIelts, 'ielts', currentLang),
           const Divider(),
-          _buildDocSwitch(Translations.getText('cnic', currentLang), _hasCnic, (val) => setState(() => _hasCnic = val)),
+          _buildDocUploadRow(Translations.getText('cnic', currentLang), _hasCnic, 'cnic', currentLang),
           const Divider(),
-          _buildDocSwitch(Translations.getText('income', currentLang), _hasIncome, (val) => setState(() => _hasIncome = val)),
+          _buildDocUploadRow(Translations.getText('income', currentLang), _hasIncome, 'income', currentLang),
         ],
       ),
     );
   }
 
-  Widget _buildDocSwitch(String title, bool value, Function(bool) onChanged) {
-    return SwitchListTile(
-      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-      value: value,
-      onChanged: onChanged,
-      activeColor: AppConstants.primaryColor,
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-    );
-  }
-
-  Widget _buildScanningCard(BuildContext context, String currentLang) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppConstants.paddingLarge),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
-        ]
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDocUploadRow(String title, bool isUploaded, String docKey, String currentLang) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppConstants.secondaryColor.withOpacity(0.2),
-                  shape: BoxShape.circle,
+          Icon(
+            isUploaded ? Icons.check_circle_rounded : Icons.pending_actions_rounded,
+            color: isUploaded ? Colors.green : Colors.grey.shade400,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
-                child: const Icon(Icons.bolt, color: AppConstants.secondaryColor, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      Translations.getText('ai_ingestor', currentLang),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    Text(
-                      Translations.getText('scan_prompt', currentLang),
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
-                    ),
-                  ],
+                const SizedBox(height: 2),
+                Text(
+                  isUploaded 
+                      ? Translations.getText('doc_uploaded', currentLang)
+                      : Translations.getText('doc_missing', currentLang),
+                  style: TextStyle(
+                    fontSize: 10, 
+                    fontWeight: FontWeight.bold,
+                    color: isUploaded ? Colors.green.shade700 : Colors.grey.shade500
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
-          
-          // Preloaded Samples for Judges (Guarantees demo works perfectly)
-          Text(
-            Translations.getText('judge_shortcuts', currentLang),
-            style: const TextStyle(color: AppConstants.secondaryColor, fontWeight: FontWeight.bold, fontSize: 11),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSampleButton('FAST (CS)', 'FAST'),
-              _buildSampleButton('NUST (SE)', 'NUST'),
-              _buildSampleButton('QAU (Phys)', 'QAU'),
-            ],
-          ),
-          const SizedBox(height: 16),
-
           ElevatedButton.icon(
-            onPressed: () => _scanSampleTranscript('NUST'),
-            icon: const Icon(Icons.camera_alt_rounded),
-            label: Text(Translations.getText('upload_button', currentLang)),
+            onPressed: () => _showUploadOptions(context, title, docKey, currentLang),
+            icon: Icon(isUploaded ? Icons.replay_rounded : Icons.cloud_upload_rounded, size: 14),
+            label: Text(
+              isUploaded 
+                  ? Translations.getText('reupload', currentLang)
+                  : Translations.getText('upload', currentLang),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppConstants.secondaryColor,
-              foregroundColor: Colors.black,
-              minimumSize: const Size(double.infinity, 45),
+              backgroundColor: isUploaded ? Colors.grey.shade100 : AppConstants.primaryColor,
+              foregroundColor: isUploaded ? Colors.black87 : Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
           ),
@@ -472,25 +432,98 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildSampleButton(String label, String code) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: OutlinedButton(
-          onPressed: () => _scanSampleTranscript(code),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: BorderSide(color: Colors.grey.shade700),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
-            ),
+  void _showUploadOptions(BuildContext context, String docTitle, String docKey, String currentLang) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${Translations.getText('upload', currentLang)}: $docTitle',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: AppConstants.primaryColor.withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppConstants.primaryColor),
+                ),
+                title: Text(Translations.getText('take_photo', currentLang), style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(Translations.getText('camera_prompt', currentLang), style: const TextStyle(fontSize: 12)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleDocUploadSuccess(docKey, docTitle, currentLang);
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: AppConstants.secondaryColor.withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(Icons.file_present_rounded, color: AppConstants.secondaryColor),
+                ),
+                title: Text(Translations.getText('choose_file', currentLang), style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(Translations.getText('file_prompt', currentLang), style: const TextStyle(fontSize: 12)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleDocUploadSuccess(docKey, docTitle, currentLang);
+                },
+              ),
+            ],
           ),
-          child: Text(label, style: const TextStyle(fontSize: 11)),
+        );
+      },
+    );
+  }
+
+  void _handleDocUploadSuccess(String docKey, String title, String currentLang) {
+    setState(() {
+      if (docKey == 'domicile') _hasDomicile = true;
+      if (docKey == 'passport') _hasPassport = true;
+      if (docKey == 'ielts') _hasIelts = true;
+      if (docKey == 'cnic') _hasCnic = true;
+      if (docKey == 'income') _hasIncome = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '$title ${Translations.getText('upload_success', currentLang)}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
+
+
 
   Widget _buildTextField({
     required TextEditingController controller,

@@ -34,7 +34,49 @@ export class ProfileService {
   }
 
   async updateProfile(userId: string, profileData: any) {
-    const { name, university, cgpa, field_of_study, degree_level } = profileData;
+    const { 
+      name, 
+      university, 
+      cgpa, 
+      field_of_study, 
+      degree_level,
+      has_domicile,
+      has_passport,
+      has_ielts,
+      has_cnic,
+      has_income
+    } = profileData;
+
+    try {
+      const { data, error } = await this.supabaseService
+        .getClient()
+        .from('student_profiles')
+        .upsert({
+          id: userId,
+          name,
+          university,
+          cgpa: cgpa ? parseFloat(cgpa) : null,
+          field_of_study,
+          degree_level,
+          has_domicile: has_domicile ?? false,
+          has_passport: has_passport ?? false,
+          has_ielts: has_ielts ?? false,
+          has_cnic: has_cnic ?? false,
+          has_income: has_income ?? false,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (!error) {
+        return data;
+      }
+      this.logger.warn(`Full profile upsert failed: ${error.message}. Running fallback...`);
+    } catch (e) {
+      this.logger.warn(`Full profile upsert threw error: ${e.message}. Running fallback...`);
+    }
+
+    // Fallback: Upsert only basic profile columns
     const { data, error } = await this.supabaseService
       .getClient()
       .from('student_profiles')
@@ -51,7 +93,7 @@ export class ProfileService {
       .single();
 
     if (error) {
-      this.logger.error(`Error updating profile: ${error.message}`);
+      this.logger.error(`Fallback profile update failed: ${error.message}`);
       throw error;
     }
 

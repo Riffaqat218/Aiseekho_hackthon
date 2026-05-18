@@ -117,6 +117,20 @@ class ApiService {
     }
   }
 
+  /// Get all scholarships from database
+  Future<List<dynamic>> getAllScholarships() async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/scholarships',
+        options: Options(headers: _getHeaders()),
+      );
+      return response.data as List<dynamic>;
+    } catch (e) {
+      debugPrint('Error getting all scholarships: $e');
+      return [];
+    }
+  }
+
   /// Run Action Simulation Chain
   Future<Map<String, dynamic>?> runActionEngine(String scholarshipId) async {
     try {

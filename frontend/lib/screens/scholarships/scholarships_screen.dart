@@ -4,6 +4,7 @@ import '../../core/constants.dart';
 import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
+import 'scholarship_details_screen.dart';
 
 class ScholarshipsScreen extends ConsumerStatefulWidget {
   const ScholarshipsScreen({super.key});
@@ -16,6 +17,13 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
   TabController? _tabController;
   Map<String, dynamic> _matchedGroups = {};
   bool _isLoading = false;
+
+  // Explore All Scholarships State
+  List<dynamic> _allScholarships = [];
+  List<dynamic> _filteredAllScholarships = [];
+  String _selectedCountryFilter = 'All';
+  List<String> _allCountries = ['All'];
+  int _selectedMainTab = 0; // 0 for Matched, 1 for Explore All
 
   // Profile Documents State for dynamic Gap Radar
   Map<String, dynamic>? _profile;
@@ -42,18 +50,28 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     setState(() => _isLoading = true);
     final api = ref.read(apiServiceProvider);
     
-    // Fetch scholarships and user profile in parallel to avoid hangs
+    // Fetch matched, profile, and all scholarships in parallel
     final results = await Future.wait([
       api.getMatchedScholarships(),
       api.getProfile(),
+      api.getAllScholarships(),
     ]);
 
     final groups = (results[0] ?? {}) as Map<String, dynamic>;
     final profile = results[1] as Map<String, dynamic>?;
+    final allList = (results[2] ?? []) as List<dynamic>;
     
     setState(() {
       _matchedGroups = groups;
       _profile = profile;
+      _allScholarships = allList;
+      _filteredAllScholarships = allList;
+
+      // Extract unique countries
+      final countriesSet = allList.map((s) => s['country'].toString()).toSet();
+      _allCountries = ['All', ...countriesSet];
+      _selectedCountryFilter = 'All';
+
       if (profile != null) {
         _hasCnic = profile['has_cnic'] ?? false;
         _hasDomicile = profile['has_domicile'] ?? false;
@@ -71,6 +89,17 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     });
   }
 
+  void _applyCountryFilter(String country) {
+    setState(() {
+      _selectedCountryFilter = country;
+      if (country == 'All') {
+        _filteredAllScholarships = _allScholarships;
+      } else {
+        _filteredAllScholarships = _allScholarships.where((s) => s['country'] == country).toList();
+      }
+    });
+  }
+
   // Perform Simulated Actions modal
   void _simulateActions(Map<String, dynamic> scholarship) async {
     showModalBottomSheet(
@@ -78,7 +107,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return _ActionSimulationSheet(scholarship: scholarship);
+        return ActionSimulationSheet(scholarship: scholarship);
       },
     );
   }
@@ -104,10 +133,155 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     return '1 wk';
   }
 
+  Widget _buildMainTabSelector(String currentLang) {
+    final isUrdu = currentLang == 'ur';
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: 12),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedMainTab = 0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _selectedMainTab == 0 ? AppConstants.primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  Translations.getText('matched_scholarships', currentLang),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _selectedMainTab == 0 ? Colors.white : Colors.grey.shade700,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedMainTab = 1),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _selectedMainTab == 1 ? AppConstants.primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  isUrdu ? 'تمام اسکالرشپس' : 'Explore All',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _selectedMainTab == 1 ? Colors.white : Colors.grey.shade700,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatchedTabContent(String currentLang) {
+    final countries = _matchedGroups.keys.toList();
+    if (countries.isEmpty) {
+      return _buildEmptyState(currentLang);
+    }
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: AppConstants.primaryColor,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: AppConstants.primaryColor,
+          tabs: countries.map((c) => Tab(text: c)).toList(),
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: countries.map((country) {
+              final list = _matchedGroups[country] as List<dynamic>;
+              return ListView.builder(
+                padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final s = list[index];
+                  return _buildScholarshipCard(s, currentLang);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExploreAllTabContent(String currentLang) {
+    final isUrdu = currentLang == 'ur';
+    if (_allScholarships.isEmpty) {
+      return _buildEmptyState(currentLang);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Country Filter Chips Row
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: 8),
+          child: Row(
+            children: _allCountries.map((c) {
+              final isSelected = _selectedCountryFilter == c;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: FilterChip(
+                  label: Text(c == 'All' ? (isUrdu ? 'تمام' : 'All') : c),
+                  selected: isSelected,
+                  onSelected: (_) => _applyCountryFilter(c),
+                  selectedColor: AppConstants.primaryColor.withOpacity(0.15),
+                  checkmarkColor: AppConstants.primaryColor,
+                  labelStyle: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppConstants.primaryColor : Colors.black87,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        Expanded(
+          child: _filteredAllScholarships.isEmpty
+              ? Center(
+                  child: Text(
+                    isUrdu ? 'کوئی اسکالرشپ نہیں ملی' : 'No scholarships found for this filter',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                  itemCount: _filteredAllScholarships.length,
+                  itemBuilder: (context, index) {
+                    final s = _filteredAllScholarships[index];
+                    return _buildScholarshipCard(s, currentLang);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentLang = ref.watch(languageProvider);
-    final countries = _matchedGroups.keys.toList();
 
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
@@ -122,35 +296,19 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
             onPressed: _loadScholarships,
           )
         ],
-        bottom: countries.isEmpty || _tabController == null
-            ? null
-            : TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                labelColor: AppConstants.primaryColor,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: AppConstants.primaryColor,
-                tabs: countries.map((c) => Tab(text: c)).toList(),
-              ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppConstants.primaryColor))
-          : countries.isEmpty
-              ? _buildEmptyState(currentLang)
-              : TabBarView(
-                  controller: _tabController,
-                  children: countries.map((country) {
-                    final list = _matchedGroups[country] as List<dynamic>;
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                      itemCount: list.length,
-                      itemBuilder: (context, index) {
-                        final s = list[index];
-                        return _buildScholarshipCard(s, currentLang);
-                      },
-                    );
-                  }).toList(),
+          : Column(
+              children: [
+                _buildMainTabSelector(currentLang),
+                Expanded(
+                  child: _selectedMainTab == 0
+                      ? _buildMatchedTabContent(currentLang)
+                      : _buildExploreAllTabContent(currentLang),
                 ),
+              ],
+            ),
     );
   }
 
@@ -177,126 +335,139 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
   Widget _buildScholarshipCard(Map<String, dynamic> s, String currentLang) {
     final docs = List<String>.from(s['required_documents']);
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.01),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  s['name'],
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppConstants.primaryColor),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppConstants.secondaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppConstants.secondaryColor.withOpacity(0.5)),
-                ),
-                child: Text(
-                  s['country'],
-                  style: const TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          
-          Row(
-            children: [
-              const Icon(Icons.grade_outlined, size: 16, color: Colors.grey),
-              const SizedBox(width: 6),
-              Text(
-                '${Translations.getText('min_cgpa', currentLang)}: ${s['min_cgpa']}', 
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 12)
-              ),
-              const Spacer(),
-              const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.grey),
-              const SizedBox(width: 6),
-              Text(
-                '${Translations.getText('deadline', currentLang)}: ${s['deadline']}', 
-                style: const TextStyle(color: AppConstants.errorColor, fontSize: 12, fontWeight: FontWeight.bold)
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          
-          Text(
-            Translations.getText('gap_radar', currentLang),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppConstants.primaryColor),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: docs.map((d) {
-              final available = _isDocAvailable(d);
-              return Chip(
-                avatar: Icon(
-                  available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-                  size: 14,
-                  color: available ? Colors.green : Colors.orange,
-                ),
-                label: Text(
-                  available ? '$d (Available)' : '$d (Missing - Timeline: ${_getAcquisitionTimeline(d)})', 
-                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)
-                ),
-                backgroundColor: available ? Colors.green.shade50 : Colors.orange.shade50,
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              );
-            }).toList(),
-          ),
-          
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () => _simulateActions(s),
-            icon: const Icon(Icons.bolt, size: 18),
-            label: Text(Translations.getText('apply_button', currentLang)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppConstants.primaryColor,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 42),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
-              ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScholarshipDetailsScreen(
+              scholarship: s,
+              profile: _profile,
             ),
           ),
-        ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.01),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    s['name'],
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppConstants.primaryColor),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppConstants.secondaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppConstants.secondaryColor.withOpacity(0.5)),
+                  ),
+                  child: Text(
+                    s['country'],
+                    style: const TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            Row(
+              children: [
+                const Icon(Icons.grade_outlined, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  '${Translations.getText('min_cgpa', currentLang)}: ${s['min_cgpa']}', 
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12)
+                ),
+                const Spacer(),
+                const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  '${Translations.getText('deadline', currentLang)}: ${s['deadline']}', 
+                  style: const TextStyle(color: AppConstants.errorColor, fontSize: 12, fontWeight: FontWeight.bold)
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            
+            Text(
+              Translations.getText('gap_radar', currentLang),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppConstants.primaryColor),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: docs.map((d) {
+                final available = _isDocAvailable(d);
+                return Chip(
+                  avatar: Icon(
+                    available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                    size: 14,
+                    color: available ? Colors.green : Colors.orange,
+                  ),
+                  label: Text(
+                    available ? '$d (Available)' : '$d (Missing - Timeline: ${_getAcquisitionTimeline(d)})', 
+                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)
+                  ),
+                  backgroundColor: available ? Colors.green.shade50 : Colors.orange.shade50,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                );
+              }).toList(),
+            ),
+            
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => _simulateActions(s),
+              icon: const Icon(Icons.bolt, size: 18),
+              label: Text(Translations.getText('apply_button', currentLang)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppConstants.primaryColor,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 42),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // Sub-component Sheet for Live Action Simulation
-class _ActionSimulationSheet extends ConsumerStatefulWidget {
+class ActionSimulationSheet extends ConsumerStatefulWidget {
   final Map<String, dynamic> scholarship;
 
-  const _ActionSimulationSheet({required this.scholarship});
+  const ActionSimulationSheet({required this.scholarship, super.key});
 
   @override
-  ConsumerState<_ActionSimulationSheet> createState() => _ActionSimulationSheetState();
+  ConsumerState<ActionSimulationSheet> createState() => ActionSimulationSheetState();
 }
 
-class _ActionSimulationSheetState extends ConsumerState<_ActionSimulationSheet> {
+class ActionSimulationSheetState extends ConsumerState<ActionSimulationSheet> {
   bool _isRunning = true;
   String _currentStep = 'Initializing Orchestrator...';
   List<dynamic> _logs = [];

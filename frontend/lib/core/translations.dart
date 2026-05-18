@@ -44,6 +44,15 @@ class Translations {
       'gap_sub': 'Timelines and priority sequencing to obtain missing items:',
       'action_sim': 'Antigravity Action Engine',
       'action_sim_sub': 'Simulating application execution steps',
+      'doc_uploaded': '✅ Uploaded & Verified',
+      'doc_missing': '❌ Missing',
+      'upload': 'Upload',
+      'reupload': 'Re-upload',
+      'take_photo': 'Take Photo (Camera)',
+      'choose_file': 'Choose File (Gallery/Files)',
+      'camera_prompt': 'Capture document using camera',
+      'file_prompt': 'Select PDF or image from files',
+      'upload_success': 'uploaded and verified successfully!',
     },
     'ur': {
       'dashboard_title': 'تیاری کا ڈیش بورڈ',
@@ -89,6 +98,15 @@ class Translations {
       'gap_sub': 'لاپتہ دستاویزات حاصل کرنے کے لیے ترجیحی ترتیب اور وقت:',
       'action_sim': 'اینٹی گریویٹی ایکشن انجن',
       'action_sim_sub': 'درخواست کے نفاذ کے مراحل کی نقالی کی جا رہی ہے',
+      'doc_uploaded': '✅ اپ لوڈ اور تصدیق شدہ',
+      'doc_missing': '❌ غائب',
+      'upload': 'اپ لوڈ کریں',
+      'reupload': 'دوبارہ اپ لوڈ کریں',
+      'take_photo': 'تصویر لیں (کیمرہ)',
+      'choose_file': 'فائل منتخب کریں (گیلری/فائلز)',
+      'camera_prompt': 'کیمرے کے ذریعے دستاویز کی تصویر لیں',
+      'file_prompt': 'ڈیوائس سے پی ڈی ایف یا تصویر منتخب کریں',
+      'upload_success': 'کامیابی سے اپ لوڈ اور تصدیق ہو گئی!',
     }
   };
 
