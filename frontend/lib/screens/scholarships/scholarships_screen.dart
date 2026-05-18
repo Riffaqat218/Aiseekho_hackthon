@@ -450,18 +450,37 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
             
             Row(
               children: [
-                const Icon(Icons.grade_outlined, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Text(
-                  '${Translations.getText('min_cgpa', currentLang)}: ${s['min_cgpa']}', 
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12)
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.grade_outlined, size: 16, color: Colors.grey),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${Translations.getText('min_cgpa', currentLang)}: ${s['min_cgpa']}', 
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const Spacer(),
-                const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Text(
-                  '${Translations.getText('deadline', currentLang)}: ${s['deadline']}', 
-                  style: const TextStyle(color: AppConstants.errorColor, fontSize: 12, fontWeight: FontWeight.bold)
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Icon(Icons.calendar_month_outlined, size: 16, color: Colors.grey),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '${Translations.getText('deadline', currentLang)}: ${s['deadline']}', 
+                          style: const TextStyle(color: AppConstants.errorColor, fontSize: 12, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

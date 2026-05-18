@@ -6,6 +6,7 @@ import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 import 'scholarships_screen.dart'; // To reuse _ActionSimulationSheet
 import '../../providers/vault_provider.dart';
+import 'university_details_screen.dart';
 
 class ScholarshipDetailsScreen extends ConsumerWidget {
   final Map<String, dynamic> scholarship;
@@ -333,27 +334,38 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: universities.map((u) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: AppConstants.primaryColor.withOpacity(0.05),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.account_balance_rounded, size: 14, color: AppConstants.primaryColor),
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UniversityDetailsScreen(universityName: u),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  u,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppConstants.primaryColor.withOpacity(0.05),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.account_balance_rounded, size: 14, color: AppConstants.primaryColor),
                                 ),
-                              ),
-                              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.grey),
-                            ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    u,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.grey),
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),

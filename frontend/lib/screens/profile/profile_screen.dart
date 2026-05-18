@@ -11,6 +11,7 @@ import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/language_switch.dart';
 import '../../providers/vault_provider.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -851,6 +852,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         builder: (context) {
           return _SmartTaggingAnimationDialog(
             fileName: file.name,
+            filePath: file.path,
             isUrdu: isUrdu,
             onClassificationComplete: (suggestedTag) {
               Navigator.pop(context);
@@ -889,11 +891,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
 class _SmartTaggingAnimationDialog extends StatefulWidget {
   final String fileName;
+  final String? filePath;
   final bool isUrdu;
   final Function(String) onClassificationComplete;
 
   const _SmartTaggingAnimationDialog({
     required this.fileName,
+    this.filePath,
     required this.isUrdu,
     required this.onClassificationComplete,
   });
@@ -939,37 +943,56 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
   }
 
   void _runSmartTaggingLifecycle() async {
-    // Perform simulated AI steps
-    for (int i = 0; i < 4; i++) {
-      await Future.delayed(const Duration(milliseconds: 1000));
-      if (mounted) {
-        setState(() {
-          _currentStep = i + 1;
-        });
+    // 1. Initializing
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() { _currentStep = 1; });
+
+    String extractedText = '';
+    
+    // 2. Reading metadata & OCR blocks using Google ML Kit (Offline)
+    if (widget.filePath != null) {
+      try {
+        final inputImage = InputImage.fromFilePath(widget.filePath!);
+        final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+        final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+        extractedText = recognizedText.text.toLowerCase();
+        await textRecognizer.close();
+      } catch (e) {
+        debugPrint('OCR Error: $e');
       }
     }
+    
+    if (!mounted) return;
+    setState(() { _currentStep = 2; });
+    await Future.delayed(const Duration(milliseconds: 600));
 
-    // Auto-detect based on file name triggers
-    final nameLower = widget.fileName.toLowerCase();
+    if (!mounted) return;
+    setState(() { _currentStep = 3; });
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    // Auto-detect based on extracted text (fallback to filename if empty or unreadable)
     String detected = 'Statement of Purpose (SOP)';
-    if (nameLower.contains('recom') || nameLower.contains('lor') || nameLower.contains('letter')) {
+    final textToSearch = extractedText.isNotEmpty ? extractedText : widget.fileName.toLowerCase();
+
+    if (textToSearch.contains('recommend') || textToSearch.contains('lor') || textToSearch.contains('reference') || textToSearch.contains('dean')) {
       detected = 'Recommendation Letter (LOR)';
-    } else if (nameLower.contains('exp') || nameLower.contains('work')) {
+    } else if (textToSearch.contains('exp') || textToSearch.contains('work') || textToSearch.contains('employ')) {
       detected = 'Experience Certificate';
-    } else if (nameLower.contains('hope') || nameLower.contains('expect')) {
+    } else if (textToSearch.contains('hope') || textToSearch.contains('expect') || textToSearch.contains('provisional')) {
       detected = 'Hope Certificate';
-    } else if (nameLower.contains('english') || nameLower.contains('ielts') || nameLower.contains('proficiency')) {
+    } else if (textToSearch.contains('english') || textToSearch.contains('ielts') || textToSearch.contains('toefl') || textToSearch.contains('proficiency')) {
       detected = 'English Proficiency Letter';
+    } else if (textToSearch.contains('purpose') || textToSearch.contains('motivation') || textToSearch.contains('sop')) {
+      detected = 'Statement of Purpose (SOP)';
     }
 
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (mounted) {
-      setState(() {
-        _currentStep = 4;
-        _detectedType = detected;
-        _showSuccessOption = true;
-      });
-    }
+    if (!mounted) return;
+    setState(() {
+      _currentStep = 4;
+      _detectedType = detected;
+      _showSuccessOption = true;
+    });
   }
 
   @override

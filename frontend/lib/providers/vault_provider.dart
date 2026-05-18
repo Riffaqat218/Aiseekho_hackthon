@@ -17,11 +17,7 @@ class CustomDoc {
 class VaultNotifier extends Notifier<List<CustomDoc>> {
   @override
   List<CustomDoc> build() {
-    // Initial pre-loaded custom items to demonstrate dynamic smart-tagging
-    return [
-      CustomDoc(name: 'Statement of Purpose (SOP)', key: 'sop', fileName: 'sop_fast_graduate.pdf'),
-      CustomDoc(name: 'Recommendation Letter (LOR)', key: 'lor', fileName: 'lor_dean_computers.pdf'),
-    ];
+    return [];
   }
 
   void addDoc(String name, String fileName) {
