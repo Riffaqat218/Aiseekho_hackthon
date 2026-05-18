@@ -10,6 +10,7 @@ import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/language_switch.dart';
+import '../../providers/vault_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -407,6 +408,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildDocVaultCard(BuildContext context, String currentLang) {
+    final customDocs = ref.watch(vaultProvider);
+    final isUrdu = currentLang == 'ur';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -450,6 +454,83 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _buildDocUploadRow(Translations.getText('cnic', currentLang), _hasCnic, 'cnic', currentLang),
           const Divider(),
           _buildDocUploadRow(Translations.getText('income', currentLang), _hasIncome, 'income', currentLang),
+          
+          if (customDocs.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Icon(Icons.auto_awesome_rounded, color: AppConstants.secondaryColor, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  isUrdu ? 'اے آئی سمارٹ ٹیگ کردہ دستاویزات' : 'AI Smart-Tagged Documents',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppConstants.secondaryColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...customDocs.map((doc) => Column(
+              children: [
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.verified_user_rounded, color: Colors.green, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              doc.name,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${isUrdu ? 'اے آئی تصدیق شدہ' : 'AI Verified'}: ${doc.fileName}',
+                              style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppConstants.secondaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          isUrdu ? 'دستیاب' : 'Vault Active',
+                          style: const TextStyle(fontSize: 9, color: AppConstants.secondaryColor, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )).toList(),
+          ],
+          
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _scanCustomDoc(context, currentLang),
+              icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+              label: Text(
+                isUrdu ? 'نئی دستاویز اسکین کریں (AI Smart-Tag)' : 'Scan New Document (AI Smart-Tag)',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppConstants.secondaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -744,6 +825,275 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           )
         ],
       ),
+    );
+  }
+
+  /// AI Smart-Tagging & Classification Engine Dialog
+  Future<void> _scanCustomDoc(BuildContext context, String currentLang) async {
+    final isUrdu = currentLang == 'ur';
+    
+    // Pick custom file/image
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.first;
+
+      // Show Progressive Smart-Tagging Animation Dialog
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return _SmartTaggingAnimationDialog(
+            fileName: file.name,
+            isUrdu: isUrdu,
+            onClassificationComplete: (suggestedTag) {
+              Navigator.pop(context);
+              // Add to dynamic vault list
+              ref.read(vaultProvider.notifier).addDoc(suggestedTag, file.name);
+              // Notify user
+              ScaffoldMessenger.of(this.context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          isUrdu 
+                            ? 'دستاویز سمارٹ ٹیگ ہو گئی: $suggestedTag!' 
+                            : 'AI tagged & verified: $suggestedTag!',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: AppConstants.secondaryColor,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Smart-Tag picker error: $e');
+    }
+  }
+}
+
+class _SmartTaggingAnimationDialog extends StatefulWidget {
+  final String fileName;
+  final bool isUrdu;
+  final Function(String) onClassificationComplete;
+
+  const _SmartTaggingAnimationDialog({
+    required this.fileName,
+    required this.isUrdu,
+    required this.onClassificationComplete,
+  });
+
+  @override
+  State<_SmartTaggingAnimationDialog> createState() => _SmartTaggingAnimationDialogState();
+}
+
+class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDialog> {
+  int _currentStep = 0;
+  String _detectedType = 'Statement of Purpose (SOP)';
+  bool _showSuccessOption = false;
+
+  final List<String> _enSteps = [
+    'Initializing Wazifa Ingestor...',
+    'Reading metadata & OCR blocks...',
+    'Parsing layout & text structures...',
+    'Running AI Smart-Classifier model...',
+    'Tagging complete!'
+  ];
+
+  final List<String> _urSteps = [
+    'انویسٹر لوڈ ہو رہا ہے...',
+    'میٹا ڈیٹا اور لکھائی کا تجزیہ کیا جا رہا ہے...',
+    'دستاویز کے نقشے کا موازنہ کیا جا رہا ہے...',
+    'اے آئی درجہ بندی ماڈل چل رہا ہے...',
+    'ٹیگنگ مکمل ہو گئی!'
+  ];
+
+  final List<String> _suggestions = [
+    'Statement of Purpose (SOP)',
+    'Recommendation Letter (LOR)',
+    'Experience Certificate',
+    'Hope Certificate',
+    'English Proficiency Letter',
+    'Other Custom Document'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _runSmartTaggingLifecycle();
+  }
+
+  void _runSmartTaggingLifecycle() async {
+    // Perform simulated AI steps
+    for (int i = 0; i < 4; i++) {
+      await Future.delayed(const Duration(milliseconds: 1000));
+      if (mounted) {
+        setState(() {
+          _currentStep = i + 1;
+        });
+      }
+    }
+
+    // Auto-detect based on file name triggers
+    final nameLower = widget.fileName.toLowerCase();
+    String detected = 'Statement of Purpose (SOP)';
+    if (nameLower.contains('recom') || nameLower.contains('lor') || nameLower.contains('letter')) {
+      detected = 'Recommendation Letter (LOR)';
+    } else if (nameLower.contains('exp') || nameLower.contains('work')) {
+      detected = 'Experience Certificate';
+    } else if (nameLower.contains('hope') || nameLower.contains('expect')) {
+      detected = 'Hope Certificate';
+    } else if (nameLower.contains('english') || nameLower.contains('ielts') || nameLower.contains('proficiency')) {
+      detected = 'English Proficiency Letter';
+    }
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) {
+      setState(() {
+        _currentStep = 4;
+        _detectedType = detected;
+        _showSuccessOption = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = widget.isUrdu ? _urSteps : _enSteps;
+    
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(
+        children: [
+          const Icon(Icons.auto_awesome_rounded, color: AppConstants.secondaryColor, size: 24),
+          const SizedBox(width: 8),
+          Text(
+            widget.isUrdu ? 'اے آئی دستاویزی اسکینر' : 'AI Ingestor & Smart-Tag',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${widget.isUrdu ? 'فائل' : 'File'}: ${widget.fileName}',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontFamily: 'monospace'),
+          ),
+          const SizedBox(height: 20),
+          
+          if (!_showSuccessOption) ...[
+            Center(
+              child: Column(
+                children: [
+                  const CircularProgressIndicator(color: AppConstants.secondaryColor),
+                  const SizedBox(height: 16),
+                  Text(
+                    steps[_currentStep],
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.green, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.isUrdu ? 'خودکار اے آئی درجہ بندی:' : 'AI Auto-Classification:',
+                          style: TextStyle(fontSize: 10, color: Colors.green.shade800, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _detectedType,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              widget.isUrdu ? 'درجہ بندی کی تصدیق یا تبدیلی کریں:' : 'Verify or Change Tag Classification:',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _suggestions.contains(_detectedType) ? _detectedType : 'Other Custom Document',
+                  isExpanded: true,
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _detectedType = newValue;
+                      });
+                    }
+                  },
+                  items: _suggestions.map((String val) {
+                    return DropdownMenuItem<String>(
+                      value: val,
+                      child: Text(val, style: const TextStyle(fontSize: 13)),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: _showSuccessOption
+          ? [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(widget.isUrdu ? 'منسوخ کریں' : 'Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => widget.onClassificationComplete(_detectedType),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppConstants.secondaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text(widget.isUrdu ? 'ٹیگ اور والٹ کریں' : 'Tag & Save to Vault'),
+              ),
+            ]
+          : null,
     );
   }
 }

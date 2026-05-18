@@ -8,18 +8,33 @@ export class AiService {
   private readonly openai: OpenAI;
   private readonly logger = new Logger(AiService.name);
 
+  private readonly modelName: string;
+
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    if (!apiKey) {
-      this.logger.warn('OPENAI_API_KEY is missing. AI features will not work.');
+    let apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    const geminiKey = this.configService.get<string>('OPEN_API_KEY');
+
+    if (!apiKey && geminiKey && geminiKey.startsWith('AIzaSy')) {
+      // Configure OpenAI client with Google Gemini compatibility layer
+      this.logger.log('Configuring OpenAI client compatibility layer with Google Gemini API.');
+      this.openai = new OpenAI({
+        apiKey: geminiKey,
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      });
+      this.modelName = 'gemini-2.5-flash';
+    } else {
+      if (!apiKey) {
+        this.logger.warn('Neither OPENAI_API_KEY nor active OPEN_API_KEY (Gemini) is available. Falling back to dummy credentials.');
+      }
+      this.openai = new OpenAI({ apiKey: apiKey || 'dummy-key' });
+      this.modelName = 'gpt-4o-mini';
     }
-    this.openai = new OpenAI({ apiKey: apiKey || 'dummy-key' });
   }
 
   streamChat(message: string): Observable<{ data: any }> {
     return new Observable((subscriber) => {
       this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: this.modelName,
         messages: [{ role: 'user', content: message }],
         stream: true,
       })

@@ -5,6 +5,7 @@ import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 import 'scholarships_screen.dart'; // To reuse _ActionSimulationSheet
+import '../../providers/vault_provider.dart';
 
 class ScholarshipDetailsScreen extends ConsumerWidget {
   final Map<String, dynamic> scholarship;
@@ -16,7 +17,7 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
     this.profile,
   });
 
-  bool _isDocAvailable(String docName) {
+  bool _isDocAvailable(String docName, WidgetRef ref) {
     if (profile == null) return false;
     final d = docName.toLowerCase();
     if (d.contains('transcript') || d.contains('marksheet')) return profile!['cgpa'] != null;
@@ -25,7 +26,9 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
     if (d.contains('ielts') || d.contains('toefl') || d.contains('english')) return profile!['has_ielts'] ?? false;
     if (d.contains('cnic') || d.contains('identity') || d.contains('card')) return profile!['has_cnic'] ?? false;
     if (d.contains('income') || d.contains('recommendation') || d.contains('finance')) return profile!['has_income'] ?? false;
-    return false;
+    
+    // Fallback to check Riverpod AI Smart-Tagged dynamic document vault
+    return ref.watch(vaultProvider.notifier).isAvailable(docName);
   }
 
   String _getAcquisitionTimeline(String docName) {
@@ -270,7 +273,7 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
                       separatorBuilder: (context, index) => const Divider(height: 24),
                       itemBuilder: (context, index) {
                         final d = docs[index];
-                        final available = _isDocAvailable(d);
+                        final available = _isDocAvailable(d, ref);
                         return Row(
                           children: [
                             Icon(
