@@ -25,31 +25,6 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Icon(Icons.school_rounded, color: AppConstants.primaryColor, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              _currentIndex == 0 
-                  ? 'Wazifa AI' 
-                  : _currentIndex == 1 
-                      ? 'Wazifa Profile' 
-                      : 'Wazifa Opportunities',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
-            ),
-          ],
-        ),
-        actions: const [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: LanguageSwitch(),
-          )
-        ],
-        backgroundColor: Colors.white,
-        elevation: 1,
-        bottomOpacity: 0,
-      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

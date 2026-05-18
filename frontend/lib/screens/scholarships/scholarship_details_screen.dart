@@ -41,24 +41,26 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
   List<String> _getEligibleUniversities(String scholarshipName) {
     final name = scholarshipName.toLowerCase();
     if (name.contains('fulbright')) {
-      return ['NUST Islamabad', 'FAST-NUCES', 'LUMS Lahore', 'Quaid-i-Azam University (QAU)', 'IBS Karachi'];
-    } else if (name.contains('heinrich')) {
-      return ['Punjab University (PU)', 'NUST Islamabad', 'FAST-NUCES', 'LUMS Lahore'];
-    } else if (name.contains('commonwealth')) {
-      return ['UET Lahore', 'NUST Islamabad', 'COMSATS Islamabad', 'NED Karachi', 'University of Karachi'];
-    } else if (name.contains('chinese') || name.contains('government')) {
-      return ['QAU Islamabad', 'Punjab University', 'NUST Islamabad', 'UET Lahore', 'FAST-NUCES'];
-    } else if (name.contains('turkiye') || name.contains('burslari')) {
-      return ['NUST Islamabad', 'FAST-NUCES', 'UET Peshawar', 'GCU Lahore', 'KU Karachi'];
+      return ['Harvard University (USA)', 'Massachusetts Institute of Technology (MIT)', 'Stanford University (USA)', 'Columbia University (USA)', 'UC Berkeley (USA)'];
+    } else if (name.contains('heinrich') || name.contains('daad') || name.contains('dafa')) {
+      return ['Technical University of Munich (Germany)', 'LMU Munich (Germany)', 'Heidelberg University (Germany)', 'Humboldt University of Berlin', 'Karlsruhe Institute of Technology (KIT)'];
+    } else if (name.contains('commonwealth') || name.contains('chevening')) {
+      return ['University of Oxford (UK)', 'University of Cambridge (UK)', 'Imperial College London (UK)', 'University College London (UCL)', 'University of Edinburgh (UK)'];
+    } else if (name.contains('chinese') || name.contains('csc') || name.contains('government')) {
+      return ['Tsinghua University (China)', 'Peking University (China)', 'Fudan University (China)', 'Zhejiang University (China)', 'Shanghai Jiao Tong University (China)'];
+    } else if (name.contains('turkiye') || name.contains('burslari') || name.contains('turkish')) {
+      return ['Middle East Technical University (Turkey)', 'Istanbul University (Turkey)', 'Bogazici University (Turkey)', 'Koc University (Turkey)', 'Ankara University (Turkey)'];
+    } else if (name.contains('mext') || name.contains('japanese')) {
+      return ['University of Tokyo (Japan)', 'Kyoto University (Japan)', 'Osaka University (Japan)', 'Tokyo Institute of Technology', 'Tohoku University (Japan)'];
     } else if (name.contains('indigenous')) {
-      return ['All HEC Recognized Public Universities', 'NUST', 'FAST', 'QAU', 'PU', 'UET'];
+      return ['NUST Islamabad', 'FAST-NUCES Islamabad', 'LUMS Lahore', 'Punjab University (PU)', 'Quaid-i-Azam University (QAU)'];
     } else if (name.contains('peef')) {
-      return ['GCU Lahore', 'Punjab University', 'UET Lahore', 'LCWU Lahore', 'KFUEIT Rahim Yar Khan'];
+      return ['GCU Lahore', 'Punjab University Lahore', 'UET Lahore', 'LCWU Lahore', 'FAST NUCES Lahore'];
     } else if (name.contains('dawood')) {
-      return ['Dawood UET Karachi', 'MUET Jamshoro', 'NED UET Karachi', 'QUEST Nawabshah'];
+      return ['Dawood UET Karachi', 'NED UET Karachi', 'MUET Jamshoro', 'QUEST Nawabshah'];
     }
-    // Default universities list
-    return ['NUST Islamabad', 'FAST-NUCES', 'Punjab University', 'Quaid-i-Azam University', 'UET Lahore'];
+    // Default high-quality global partner list
+    return ['Technical University of Munich (Germany)', 'University of Oxford (UK)', 'Stanford University (USA)', 'University of Tokyo (Japan)', 'Tsinghua University (China)'];
   }
 
   String _getScholarshipDescription(String scholarshipName) {
@@ -308,14 +310,14 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
 
                   // Eligible Universities Section
                   Text(
-                    isUrdu ? 'شریک پاکستانی یونیورسٹیاں' : 'Participating Universities',
+                    isUrdu ? 'شریک بین الاقوامی اور قومی یونیورسٹیاں' : 'Recognized Partner Universities',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppConstants.primaryColor),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     isUrdu
-                        ? 'وہ اعلیٰ یونیورسٹیاں جہاں طلباء اس اسکالرشپ کے تحت داخلہ حاصل کر سکتے ہیں:'
-                        : 'Top institutions in Pakistan whose programs are recognized under this scholarship:',
+                        ? 'اعلیٰ تعلیمی ادارے جہاں طلباء اس اسکالرشپ کے تحت داخلہ حاصل کر سکتے ہیں:'
+                        : 'Top global partner institutions where you can secure admission under this scholarship:',
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                   ),
                   const SizedBox(height: 12),

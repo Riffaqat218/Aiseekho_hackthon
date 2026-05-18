@@ -6,6 +6,7 @@ import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 import 'scholarship_details_screen.dart';
+import '../../widgets/common/language_switch.dart';
 
 class ScholarshipsScreen extends ConsumerStatefulWidget {
   const ScholarshipsScreen({super.key});
@@ -331,15 +332,27 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
       appBar: AppBar(
-        title: Text(Translations.getText('scholarship_title', currentLang)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: Row(
+          children: [
+            const Icon(Icons.school_rounded, color: AppConstants.primaryColor, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              Translations.getText('scholarship_title', currentLang),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
         centerTitle: false,
         actions: [
+          const Center(child: LanguageSwitch()),
+          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.black87),
             onPressed: _loadScholarships,
-          )
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _isLoading

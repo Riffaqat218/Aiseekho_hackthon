@@ -9,6 +9,7 @@ import '../../core/constants.dart';
 import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
+import '../../widgets/common/language_switch.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -268,15 +269,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
       appBar: AppBar(
-        title: Text(Translations.getText('profile_title', currentLang)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: Row(
+          children: [
+            const Icon(Icons.person_rounded, color: AppConstants.primaryColor, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              Translations.getText('profile_title', currentLang),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
         centerTitle: false,
         actions: [
+          const Center(child: LanguageSwitch()),
+          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.black87),
             onPressed: _loadProfile,
-          )
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _isLoading
