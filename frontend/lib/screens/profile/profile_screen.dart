@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants.dart';
 import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
@@ -51,12 +55,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
-    final profile = await ref.read(apiServiceProvider).getProfile();
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    Map<String, dynamic>? profile;
+
+    if (userId != null) {
+      try {
+        // Read directly from Supabase (Flutter client has user auth context)
+        final data = await Supabase.instance.client
+            .from('student_profiles')
+            .select()
+            .eq('id', userId)
+            .maybeSingle();
+        profile = data;
+      } catch (e) {
+        debugPrint('Direct Supabase profile read error: $e');
+      }
+    }
+
+    // Fallback to NestJS API if direct read failed
+    if (profile == null) {
+      profile = await ref.read(apiServiceProvider).getProfile();
+    }
+
     if (profile != null) {
       setState(() {
-        _nameController.text = profile['name'] ?? '';
+        _nameController.text = profile!['name'] ?? '';
         _universityController.text = profile['university'] ?? '';
-        _cgpaController.text = (profile['cgpa'] ?? '').toString();
+        final cgpaValue = profile['cgpa'];
+        _cgpaController.text = cgpaValue != null ? cgpaValue.toString() : '';
         _fieldController.text = profile['field_of_study'] ?? '';
         if (profile['degree_level'] != null) {
           _selectedDegree = profile['degree_level'];
@@ -67,17 +94,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _hasCnic = profile['has_cnic'] ?? false;
         _hasIncome = profile['has_income'] ?? false;
       });
-    } else {
-      // Display a beautiful error banner to guide physical phone setup
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⚠️ Connection Timeout: Could not reach NestJS backend. Enter your computer\'s local IP address at the bottom of this page!'),
-            duration: Duration(seconds: 8),
-            backgroundColor: AppConstants.errorColor,
-          ),
-        );
-      });
     }
     setState(() => _isLoading = false);
   }
@@ -86,36 +102,87 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    final profileData = {
-      'name': _nameController.text.trim(),
-      'university': _universityController.text.trim(),
-      'cgpa': _cgpaController.text.trim(),
-      'field_of_study': _fieldController.text.trim(),
-      'degree_level': _selectedDegree,
-      'has_domicile': _hasDomicile,
-      'has_passport': _hasPassport,
-      'has_ielts': _hasIelts,
-      'has_cnic': _hasCnic,
-      'has_income': _hasIncome,
-    };
 
-    final result = await ref.read(apiServiceProvider).updateProfile(profileData);
-    setState(() => _isSaving = false);
-
-    if (result != null) {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Profile updated successfully!'),
-          backgroundColor: AppConstants.secondaryColor,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update profile.'),
+          content: Text('Not authenticated. Please log in again.'),
           backgroundColor: AppConstants.errorColor,
         ),
       );
+      return;
+    }
+
+    final cgpaText = _cgpaController.text.trim();
+    final cgpaVal = double.tryParse(cgpaText);
+
+    try {
+      // Write directly to Supabase from Flutter (has user auth context, RLS passes)
+      await Supabase.instance.client
+          .from('student_profiles')
+          .upsert({
+            'id': userId,
+            'name': _nameController.text.trim(),
+            'university': _universityController.text.trim(),
+            'cgpa': cgpaVal,
+            'field_of_study': _fieldController.text.trim(),
+            'degree_level': _selectedDegree,
+            'has_domicile': _hasDomicile,
+            'has_passport': _hasPassport,
+            'has_ielts': _hasIelts,
+            'has_cnic': _hasCnic,
+            'has_income': _hasIncome,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          });
+
+      setState(() => _isSaving = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: AppConstants.secondaryColor,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Direct Supabase profile save error: $e');
+      // Fallback: try without the boolean columns (in case DB migration not applied)
+      try {
+        await Supabase.instance.client
+            .from('student_profiles')
+            .upsert({
+              'id': userId,
+              'name': _nameController.text.trim(),
+              'university': _universityController.text.trim(),
+              'cgpa': cgpaVal,
+              'field_of_study': _fieldController.text.trim(),
+              'degree_level': _selectedDegree,
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
+            });
+
+        setState(() => _isSaving = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile updated (basic fields saved)!'),
+              backgroundColor: AppConstants.secondaryColor,
+            ),
+          );
+        }
+      } catch (e2) {
+        debugPrint('Fallback profile save also failed: $e2');
+        setState(() => _isSaving = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update profile: $e2'),
+              backgroundColor: AppConstants.errorColor,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -449,9 +516,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '${Translations.getText('upload', currentLang)}: $docTitle',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Flexible(
+                    child: Text(
+                      '${Translations.getText('upload', currentLang)}: $docTitle',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
@@ -470,7 +540,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 subtitle: Text(Translations.getText('camera_prompt', currentLang), style: const TextStyle(fontSize: 12)),
                 onTap: () {
                   Navigator.pop(context);
-                  _handleDocUploadSuccess(docKey, docTitle, currentLang);
+                  _pickFromCamera(docKey, docTitle, currentLang);
                 },
               ),
               const Divider(),
@@ -484,7 +554,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 subtitle: Text(Translations.getText('file_prompt', currentLang), style: const TextStyle(fontSize: 12)),
                 onTap: () {
                   Navigator.pop(context);
-                  _handleDocUploadSuccess(docKey, docTitle, currentLang);
+                  _pickFromFiles(docKey, docTitle, currentLang);
                 },
               ),
             ],
@@ -494,7 +564,63 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _handleDocUploadSuccess(String docKey, String title, String currentLang) {
+  /// Opens device camera, captures photo, and marks document as uploaded
+  Future<void> _pickFromCamera(String docKey, String title, String currentLang) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+        maxWidth: 1200,
+      );
+
+      if (image != null) {
+        final File file = File(image.path);
+        final int fileSize = await file.length();
+        debugPrint('Camera capture: ${image.name}, size: $fileSize bytes');
+        _markDocUploaded(docKey, title, currentLang, image.name);
+      }
+    } catch (e) {
+      debugPrint('Camera error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Camera error: $e'),
+            backgroundColor: AppConstants.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Opens file picker for PDFs or images, and marks document as uploaded
+  Future<void> _pickFromFiles(String docKey, String title, String currentLang) async {
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final PlatformFile file = result.files.first;
+        debugPrint('File picked: ${file.name}, size: ${file.size} bytes, path: ${file.path}');
+        _markDocUploaded(docKey, title, currentLang, file.name);
+      }
+    } catch (e) {
+      debugPrint('File picker error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('File picker error: $e'),
+            backgroundColor: AppConstants.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  void _markDocUploaded(String docKey, String title, String currentLang, String fileName) {
     setState(() {
       if (docKey == 'domicile') _hasDomicile = true;
       if (docKey == 'passport') _hasPassport = true;
@@ -503,24 +629,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (docKey == 'income') _hasIncome = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '$title ${Translations.getText('upload_success', currentLang)}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$title ${Translations.getText('upload_success', currentLang)}\n📄 $fileName',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
-        backgroundColor: Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+      );
+    }
   }
 
 

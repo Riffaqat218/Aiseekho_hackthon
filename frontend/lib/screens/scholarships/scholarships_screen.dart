@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants.dart';
 import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
@@ -48,19 +49,63 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
 
   Future<void> _loadScholarships() async {
     setState(() => _isLoading = true);
+    final supabase = Supabase.instance.client;
+    final userId = supabase.auth.currentUser?.id;
     final api = ref.read(apiServiceProvider);
-    
-    // Fetch matched, profile, and all scholarships in parallel
-    final results = await Future.wait([
-      api.getMatchedScholarships(),
-      api.getProfile(),
-      api.getAllScholarships(),
-    ]);
 
-    final groups = (results[0] ?? {}) as Map<String, dynamic>;
-    final profile = results[1] as Map<String, dynamic>?;
-    final allList = (results[2] ?? []) as List<dynamic>;
-    
+    List<dynamic> allList = [];
+    Map<String, dynamic>? profile;
+    Map<String, dynamic> groups = {};
+
+    // 1. Load all scholarships directly from Supabase (public read RLS)
+    try {
+      final data = await supabase
+          .from('scholarships')
+          .select()
+          .order('country', ascending: true);
+      allList = data as List<dynamic>;
+    } catch (e) {
+      debugPrint('Direct Supabase scholarships read error: $e');
+      // Fallback to NestJS API
+      try {
+        allList = await api.getAllScholarships();
+      } catch (_) {}
+    }
+
+    // 2. Load profile directly from Supabase
+    if (userId != null) {
+      try {
+        profile = await supabase
+            .from('student_profiles')
+            .select()
+            .eq('id', userId)
+            .maybeSingle();
+      } catch (e) {
+        debugPrint('Direct Supabase profile read error: $e');
+        profile = await api.getProfile();
+      }
+    }
+
+    // 3. Build matched groups from allList + profile
+    if (profile != null && allList.isNotEmpty) {
+      final userCgpa = double.tryParse(profile['cgpa']?.toString() ?? '0') ?? 0;
+      final matched = allList.where((s) {
+        final minCgpa = double.tryParse(s['min_cgpa']?.toString() ?? '99') ?? 99;
+        return userCgpa >= minCgpa;
+      }).toList();
+
+      for (final s in matched) {
+        final country = s['country']?.toString() ?? 'Other';
+        groups[country] ??= [];
+        (groups[country] as List).add(s);
+      }
+    } else {
+      // Try backend API fallback for matched
+      try {
+        groups = await api.getMatchedScholarships();
+      } catch (_) {}
+    }
+
     setState(() {
       _matchedGroups = groups;
       _profile = profile;
