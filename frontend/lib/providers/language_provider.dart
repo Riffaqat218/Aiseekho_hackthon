@@ -8,6 +8,10 @@ class LanguageNotifier extends Notifier<String> {
   void toggle() {
     state = state == 'en' ? 'ur' : 'en';
   }
+
+  void setLanguage(String code) {
+    state = code;
+  }
 }
 
 final languageProvider = NotifierProvider<LanguageNotifier, String>(LanguageNotifier.new);

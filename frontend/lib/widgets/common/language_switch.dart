@@ -30,7 +30,7 @@ class LanguageSwitch extends ConsumerWidget {
   Widget _buildOption(BuildContext context, WidgetRef ref, String code, String label, bool isSelected) {
     return GestureDetector(
       onTap: () {
-        ref.read(languageProvider.notifier).state = code;
+        ref.read(languageProvider.notifier).setLanguage(code);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
