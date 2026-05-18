@@ -80,7 +80,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
-      backgroundColor: AppConstants.backgroundColor,
       appBar: AppBar(
         title: Row(
           children: [
@@ -422,6 +421,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           )
         ],
       ),
+    );
+  }
+
   Widget _buildAgentSuiteCard(BuildContext context, {required String title, required String description, required IconData icon, required Color color}) {
     return Container(
       width: double.infinity,
