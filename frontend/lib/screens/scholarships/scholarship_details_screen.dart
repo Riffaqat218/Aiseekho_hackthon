@@ -19,6 +19,15 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
   });
 
   bool _isDocAvailable(String docName, WidgetRef ref) {
+    final d = docName.toLowerCase();
+    if (profile != null) {
+      if (d.contains('domicile') && (profile!['has_domicile'] == true)) return true;
+      if (d.contains('passport') && (profile!['has_passport'] == true)) return true;
+      if (d.contains('ielts') && (profile!['has_ielts'] == true)) return true;
+      if (d.contains('cnic') && (profile!['has_cnic'] == true)) return true;
+      if (d.contains('transcript') && (profile!['has_transcript'] == true)) return true;
+      if (d.contains('degree') && (profile!['has_degree'] == true)) return true;
+    }
     return ref.watch(vaultProvider.notifier).isAvailable(docName);
   }
 

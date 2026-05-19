@@ -162,6 +162,14 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
   }
 
   bool _isDocAvailable(String docName) {
+    final d = docName.toLowerCase();
+    if (d.contains('domicile') && _hasDomicile) return true;
+    if (d.contains('passport') && _hasPassport) return true;
+    if (d.contains('ielts') && _hasIelts) return true;
+    if (d.contains('cnic') && _hasCnic) return true;
+    if (d.contains('transcript') && _hasTranscript) return true;
+    if (d.contains('degree') && _hasDegree) return true;
+    
     return ref.watch(vaultProvider.notifier).isAvailable(docName);
   }
 

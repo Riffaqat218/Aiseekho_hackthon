@@ -17,9 +17,9 @@ class TraceLog {
 }
 
 class AIService {
-  // Use 10.0.2.2 for Android emulator to connect to localhost:3000
   String get _baseUrl {
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000/api/v1';
+    final isWeb = const bool.fromEnvironment('dart.library.js_util');
+    if (!isWeb && Platform.isAndroid) return 'http://10.0.2.2:3000/api/v1';
     return 'http://localhost:3000/api/v1';
   }
 

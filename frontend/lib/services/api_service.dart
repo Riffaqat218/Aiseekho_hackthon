@@ -11,8 +11,10 @@ class ApiService {
     receiveTimeout: const Duration(seconds: 15),
   ));
   
-  // Set default IP. Support updating this IP at runtime for physical devices!
-  String _serverIp = '10.0.2.2'; // Standard Android Emulator localhost
+  // Set default IP dynamically based on platform (since Platform.isAndroid throws on web)
+  String _serverIp = const bool.fromEnvironment('dart.library.js_util') 
+      ? 'localhost' 
+      : (Platform.isAndroid ? '10.0.2.2' : 'localhost');
   
   void setServerIp(String ip) {
     _serverIp = ip;
