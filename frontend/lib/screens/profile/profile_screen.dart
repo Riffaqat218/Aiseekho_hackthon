@@ -928,6 +928,9 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
   ];
 
   final List<String> _suggestions = [
+    'CNIC/B-Form Copy',
+    'Passport',
+    'Domicile',
     'Statement of Purpose (SOP)',
     'Recommendation Letter (LOR)',
     'Experience Certificate',
@@ -972,10 +975,16 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
     await Future.delayed(const Duration(milliseconds: 600));
 
     // Auto-detect based on extracted text (fallback to filename if empty or unreadable)
-    String detected = 'Statement of Purpose (SOP)';
+    String detected = 'Other Custom Document';
     final textToSearch = extractedText.isNotEmpty ? extractedText : widget.fileName.toLowerCase();
 
-    if (textToSearch.contains('recommend') || textToSearch.contains('lor') || textToSearch.contains('reference') || textToSearch.contains('dean')) {
+    if (textToSearch.contains('cnic') || textToSearch.contains('identity') || textToSearch.contains('national card') || textToSearch.contains('citizen') || textToSearch.contains('b-form') || textToSearch.contains('card')) {
+      detected = 'CNIC/B-Form Copy';
+    } else if (textToSearch.contains('passport') || textToSearch.contains('pass port')) {
+      detected = 'Passport';
+    } else if (textToSearch.contains('domicile') || textToSearch.contains('domicil')) {
+      detected = 'Domicile';
+    } else if (textToSearch.contains('recommend') || textToSearch.contains('lor') || textToSearch.contains('reference') || textToSearch.contains('dean')) {
       detected = 'Recommendation Letter (LOR)';
     } else if (textToSearch.contains('exp') || textToSearch.contains('work') || textToSearch.contains('employ')) {
       detected = 'Experience Certificate';

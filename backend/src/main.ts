@@ -20,6 +20,6 @@ async function bootstrap() {
   // Generate swagger.json file for frontend devs
   fs.writeFileSync('./swagger.json', JSON.stringify(documentFactory(), null, 2));
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();
