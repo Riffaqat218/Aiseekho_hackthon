@@ -7,6 +7,7 @@ import '../../providers/language_provider.dart';
 class AboutUsScreen extends ConsumerWidget {
   const AboutUsScreen({super.key});
 
+  // Native OpenAI vision pipeline compilation trigger
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(languageProvider);
