@@ -27,7 +27,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _cgpaController = TextEditingController();
   final _fieldController = TextEditingController();
   final _ipController = TextEditingController();
-  
+
   String _selectedDegree = 'Bachelor';
   bool _isLoading = false;
   bool _isSaving = false;
@@ -125,23 +125,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     try {
       // Write directly to Supabase from Flutter (has user auth context, RLS passes)
-      await Supabase.instance.client
-          .from('student_profiles')
-          .upsert({
-            'id': userId,
-            'name': _nameController.text.trim(),
-            'university': _universityController.text.trim(),
-            'cgpa': cgpaVal,
-            'field_of_study': _fieldController.text.trim(),
-            'degree_level': _selectedDegree,
-            'has_domicile': _hasDomicile,
-            'has_passport': _hasPassport,
-            'has_ielts': _hasIelts,
-            'has_cnic': _hasCnic,
-            'has_transcript': _hasTranscript,
-            'has_degree': _hasDegree,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          });
+      await Supabase.instance.client.from('student_profiles').upsert({
+        'id': userId,
+        'name': _nameController.text.trim(),
+        'university': _universityController.text.trim(),
+        'cgpa': cgpaVal,
+        'field_of_study': _fieldController.text.trim(),
+        'degree_level': _selectedDegree,
+        'has_domicile': _hasDomicile,
+        'has_passport': _hasPassport,
+        'has_ielts': _hasIelts,
+        'has_cnic': _hasCnic,
+        'has_transcript': _hasTranscript,
+        'has_degree': _hasDegree,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
 
       setState(() => _isSaving = false);
       if (mounted) {
@@ -156,17 +154,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       debugPrint('Direct Supabase profile save error: $e');
       // Fallback: try without the boolean columns (in case DB migration not applied)
       try {
-        await Supabase.instance.client
-            .from('student_profiles')
-            .upsert({
-              'id': userId,
-              'name': _nameController.text.trim(),
-              'university': _universityController.text.trim(),
-              'cgpa': cgpaVal,
-              'field_of_study': _fieldController.text.trim(),
-              'degree_level': _selectedDegree,
-              'updated_at': DateTime.now().toUtc().toIso8601String(),
-            });
+        await Supabase.instance.client.from('student_profiles').upsert({
+          'id': userId,
+          'name': _nameController.text.trim(),
+          'university': _universityController.text.trim(),
+          'cgpa': cgpaVal,
+          'field_of_study': _fieldController.text.trim(),
+          'degree_level': _selectedDegree,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        });
 
         setState(() => _isSaving = false);
         if (mounted) {
@@ -198,7 +194,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     // Mock PDF/Marksheet data matching university standard
     Map<String, dynamic>? ocrResult;
-    
+
     // Simulate real delay
     await Future.delayed(const Duration(seconds: 2));
 
@@ -249,9 +245,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Call scanning API to log on backend database
     // We send dummy bytes to trigger Ingestor Agent logs
     await ref.read(apiServiceProvider).scanDocument(
-      utf8.encode(jsonEncode(ocrResult)),
-      '${sampleType}_transcript.jpg',
-    );
+          utf8.encode(jsonEncode(ocrResult)),
+          '${sampleType}_transcript.jpg',
+        );
 
     setState(() {
       _nameController.text = ocrResult!['name'];
@@ -264,7 +260,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Successfully auto-filled profile from $sampleType Transcript!'),
+        content: Text(
+            'Successfully auto-filled profile from $sampleType Transcript!'),
         backgroundColor: AppConstants.secondaryColor,
       ),
     );
@@ -279,11 +276,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Icon(Icons.person_rounded, color: AppConstants.primaryColor, size: 24),
+            const Icon(Icons.person_rounded,
+                color: AppConstants.primaryColor, size: 24),
             const SizedBox(width: 8),
             Text(
               Translations.getText('profile_title', currentLang),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black),
             ),
           ],
         ),
@@ -301,7 +302,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppConstants.primaryColor))
+          ? const Center(
+              child:
+                  CircularProgressIndicator(color: AppConstants.primaryColor))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(AppConstants.paddingLarge),
               child: Column(
@@ -313,23 +316,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   Form(
                     key: _formKey,
                     child: Column(
                       children: [
                         _buildTextField(
                           controller: _nameController,
-                          label: Translations.getText('name_label', currentLang),
+                          label:
+                              Translations.getText('name_label', currentLang),
                           icon: Icons.person_rounded,
-                          validator: (v) => v!.isEmpty ? 'Name is required' : null,
+                          validator: (v) =>
+                              v!.isEmpty ? 'Name is required' : null,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           controller: _universityController,
-                          label: Translations.getText('univ_label', currentLang),
+                          label:
+                              Translations.getText('univ_label', currentLang),
                           icon: Icons.school_rounded,
-                          validator: (v) => v!.isEmpty ? 'University is required' : null,
+                          validator: (v) =>
+                              v!.isEmpty ? 'University is required' : null,
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -337,13 +344,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             Expanded(
                               child: _buildTextField(
                                 controller: _cgpaController,
-                                label: Translations.getText('cgpa_label', currentLang),
+                                label: Translations.getText(
+                                    'cgpa_label', currentLang),
                                 icon: Icons.grade_rounded,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
                                 validator: (v) {
                                   if (v!.isEmpty) return 'CGPA is required';
                                   final val = double.tryParse(v);
-                                  if (val == null || val < 0 || val > 4.00) return 'Enter valid CGPA';
+                                  if (val == null || val < 0 || val > 4.00)
+                                    return 'Enter valid CGPA';
                                   return null;
                                 },
                               ),
@@ -353,14 +364,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               child: DropdownButtonFormField<String>(
                                 value: _selectedDegree,
                                 decoration: InputDecoration(
-                                  labelText: Translations.getText('degree_label', currentLang),
-                                  prefixIcon: const Icon(Icons.workspace_premium_rounded, color: AppConstants.primaryColor),
+                                  labelText: Translations.getText(
+                                      'degree_label', currentLang),
+                                  prefixIcon: const Icon(
+                                      Icons.workspace_premium_rounded,
+                                      color: AppConstants.primaryColor),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                                    borderRadius: BorderRadius.circular(
+                                        AppConstants.borderRadiusMedium),
                                   ),
                                 ),
                                 items: ['Bachelor', 'Master', 'PhD']
-                                    .map((deg) => DropdownMenuItem(value: deg, child: Text(deg)))
+                                    .map((deg) => DropdownMenuItem(
+                                        value: deg, child: Text(deg)))
                                     .toList(),
                                 onChanged: (val) {
                                   setState(() => _selectedDegree = val!);
@@ -372,26 +388,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(height: 16),
                         _buildTextField(
                           controller: _fieldController,
-                          label: Translations.getText('field_label', currentLang),
+                          label:
+                              Translations.getText('field_label', currentLang),
                           icon: Icons.biotech_rounded,
-                          validator: (v) => v!.isEmpty ? 'Major field is required' : null,
+                          validator: (v) =>
+                              v!.isEmpty ? 'Major field is required' : null,
                         ),
                         const SizedBox(height: 24),
-                        
                         SizedBox(
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton.icon(
                             onPressed: _isSaving ? null : _saveProfile,
-                            icon: _isSaving 
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            icon: _isSaving
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
                                 : const Icon(Icons.save_rounded),
-                            label: Text(Translations.getText('save_button', currentLang)),
+                            label: Text(Translations.getText(
+                                'save_button', currentLang)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppConstants.primaryColor,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                                borderRadius: BorderRadius.circular(
+                                    AppConstants.borderRadiusMedium),
                               ),
                             ),
                           ),
@@ -422,27 +445,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          )
-        ]
-      ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            )
+          ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.folder_shared_rounded, color: AppConstants.primaryColor, size: 24),
+              const Icon(Icons.folder_shared_rounded,
+                  color: AppConstants.primaryColor, size: 24),
               const SizedBox(width: 10),
               Text(
                 Translations.getText('doc_vault', currentLang),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ],
           ),
@@ -452,74 +476,98 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
           const SizedBox(height: 16),
-          _buildDocUploadRow(Translations.getText('domicile', currentLang), _hasDomicile, 'domicile', currentLang),
+          _buildDocUploadRow(Translations.getText('domicile', currentLang),
+              _hasDomicile, 'domicile', currentLang),
           const Divider(),
-          _buildDocUploadRow(Translations.getText('passport', currentLang), _hasPassport, 'passport', currentLang),
+          _buildDocUploadRow(Translations.getText('passport', currentLang),
+              _hasPassport, 'passport', currentLang),
           const Divider(),
-          _buildDocUploadRow(Translations.getText('ielts', currentLang), _hasIelts, 'ielts', currentLang),
+          _buildDocUploadRow(Translations.getText('ielts', currentLang),
+              _hasIelts, 'ielts', currentLang),
           const Divider(),
-          _buildDocUploadRow(Translations.getText('cnic', currentLang), _hasCnic, 'cnic', currentLang),
+          _buildDocUploadRow(Translations.getText('cnic', currentLang),
+              _hasCnic, 'cnic', currentLang),
           const Divider(),
-          _buildDocUploadRow(Translations.getText('transcript', currentLang), _hasTranscript, 'transcript', currentLang),
+          _buildDocUploadRow(Translations.getText('transcript', currentLang),
+              _hasTranscript, 'transcript', currentLang),
           const Divider(),
-          _buildDocUploadRow(Translations.getText('degree', currentLang), _hasDegree, 'degree', currentLang),
-          
+          _buildDocUploadRow(Translations.getText('degree', currentLang),
+              _hasDegree, 'degree', currentLang),
           if (customDocs.isNotEmpty) ...[
             const SizedBox(height: 24),
             Row(
               children: [
-                Icon(Icons.auto_awesome_rounded, color: AppConstants.secondaryColor, size: 16),
+                Icon(Icons.auto_awesome_rounded,
+                    color: AppConstants.secondaryColor, size: 16),
                 const SizedBox(width: 6),
                 Text(
-                  isUrdu ? 'اے آئی سمارٹ ٹیگ کردہ دستاویزات' : 'AI Smart-Tagged Documents',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppConstants.secondaryColor),
+                  isUrdu
+                      ? 'اے آئی سمارٹ ٹیگ کردہ دستاویزات'
+                      : 'AI Smart-Tagged Documents',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: AppConstants.secondaryColor),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            ...customDocs.map((doc) => Column(
-              children: [
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.verified_user_rounded, color: Colors.green, size: 22),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              doc.name,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${isUrdu ? 'اے آئی تصدیق شدہ' : 'AI Verified'}: ${doc.fileName}',
-                              style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+            ...customDocs
+                .map((doc) => Column(
+                      children: [
+                        const Divider(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.verified_user_rounded,
+                                  color: Colors.green, size: 22),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      doc.name,
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${isUrdu ? 'اے آئی تصدیق شدہ' : 'AI Verified'}: ${doc.fileName}',
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.green.shade700,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppConstants.secondaryColor
+                                      .withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  isUrdu ? 'دستیاب' : 'Vault Active',
+                                  style: const TextStyle(
+                                      fontSize: 9,
+                                      color: AppConstants.secondaryColor,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppConstants.secondaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          isUrdu ? 'دستیاب' : 'Vault Active',
-                          style: const TextStyle(fontSize: 9, color: AppConstants.secondaryColor, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )).toList(),
+                      ],
+                    ))
+                .toList(),
           ],
-          
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
@@ -527,8 +575,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onPressed: () => _scanCustomDoc(context, currentLang),
               icon: const Icon(Icons.auto_awesome_rounded, size: 16),
               label: Text(
-                isUrdu ? 'نئی دستاویز اسکین کریں (AI Smart-Tag)' : 'Scan New Document (AI Smart-Tag)',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                isUrdu
+                    ? 'نئی دستاویز اسکین کریں (AI Smart-Tag)'
+                    : 'Scan New Document (AI Smart-Tag)',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppConstants.secondaryColor,
@@ -545,13 +596,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildDocUploadRow(String title, bool isUploaded, String docKey, String currentLang) {
+  Widget _buildDocUploadRow(
+      String title, bool isUploaded, String docKey, String currentLang) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
           Icon(
-            isUploaded ? Icons.check_circle_rounded : Icons.pending_actions_rounded,
+            isUploaded
+                ? Icons.check_circle_rounded
+                : Icons.pending_actions_rounded,
             color: isUploaded ? Colors.green : Colors.grey.shade400,
             size: 22,
           ),
@@ -562,33 +616,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  isUploaded 
+                  isUploaded
                       ? Translations.getText('doc_uploaded', currentLang)
                       : Translations.getText('doc_missing', currentLang),
                   style: TextStyle(
-                    fontSize: 10, 
-                    fontWeight: FontWeight.bold,
-                    color: isUploaded ? Colors.green.shade700 : Colors.grey.shade500
-                  ),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: isUploaded
+                          ? Colors.green.shade700
+                          : Colors.grey.shade500),
                 ),
               ],
             ),
           ),
           ElevatedButton.icon(
-            onPressed: () => _showUploadOptions(context, title, docKey, currentLang),
-            icon: Icon(isUploaded ? Icons.replay_rounded : Icons.cloud_upload_rounded, size: 14),
+            onPressed: () =>
+                _showUploadOptions(context, title, docKey, currentLang),
+            icon: Icon(
+                isUploaded ? Icons.replay_rounded : Icons.cloud_upload_rounded,
+                size: 14),
             label: Text(
-              isUploaded 
+              isUploaded
                   ? Translations.getText('reupload', currentLang)
                   : Translations.getText('upload', currentLang),
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isUploaded ? Colors.grey.shade100 : AppConstants.primaryColor,
+              backgroundColor:
+                  isUploaded ? Colors.grey.shade100 : AppConstants.primaryColor,
               foregroundColor: isUploaded ? Colors.black87 : Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -602,7 +664,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _showUploadOptions(BuildContext context, String docTitle, String docKey, String currentLang) {
+  void _showUploadOptions(BuildContext context, String docTitle, String docKey,
+      String currentLang) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -622,7 +685,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Flexible(
                     child: Text(
                       '${Translations.getText('upload', currentLang)}: $docTitle',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -636,11 +700,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppConstants.primaryColor.withOpacity(0.1), shape: BoxShape.circle),
-                  child: const Icon(Icons.camera_alt_rounded, color: AppConstants.primaryColor),
+                  decoration: BoxDecoration(
+                      color: AppConstants.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: AppConstants.primaryColor),
                 ),
-                title: Text(Translations.getText('take_photo', currentLang), style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(Translations.getText('camera_prompt', currentLang), style: const TextStyle(fontSize: 12)),
+                title: Text(Translations.getText('take_photo', currentLang),
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(
+                    Translations.getText('camera_prompt', currentLang),
+                    style: const TextStyle(fontSize: 12)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickFromCamera(docKey, docTitle, currentLang);
@@ -650,11 +720,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppConstants.secondaryColor.withOpacity(0.1), shape: BoxShape.circle),
-                  child: const Icon(Icons.file_present_rounded, color: AppConstants.secondaryColor),
+                  decoration: BoxDecoration(
+                      color: AppConstants.secondaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle),
+                  child: const Icon(Icons.file_present_rounded,
+                      color: AppConstants.secondaryColor),
                 ),
-                title: Text(Translations.getText('choose_file', currentLang), style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(Translations.getText('file_prompt', currentLang), style: const TextStyle(fontSize: 12)),
+                title: Text(Translations.getText('choose_file', currentLang),
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(Translations.getText('file_prompt', currentLang),
+                    style: const TextStyle(fontSize: 12)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickFromFiles(docKey, docTitle, currentLang);
@@ -668,7 +743,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   /// Opens device camera, captures photo, and marks document as uploaded
-  Future<void> _pickFromCamera(String docKey, String title, String currentLang) async {
+  Future<void> _pickFromCamera(
+      String docKey, String title, String currentLang) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -697,7 +773,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   /// Opens file picker for PDFs or images, and marks document as uploaded
-  Future<void> _pickFromFiles(String docKey, String title, String currentLang) async {
+  Future<void> _pickFromFiles(
+      String docKey, String title, String currentLang) async {
     try {
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -707,7 +784,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       if (result != null && result.files.isNotEmpty) {
         final PlatformFile file = result.files.first;
-        debugPrint('File picked: ${file.name}, size: ${file.size} bytes, path: ${file.path}');
+        debugPrint(
+            'File picked: ${file.name}, size: ${file.size} bytes, path: ${file.path}');
         _markDocUploaded(docKey, title, currentLang, file.name);
       }
     } catch (e) {
@@ -723,7 +801,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  void _markDocUploaded(String docKey, String title, String currentLang, String fileName) {
+  void _markDocUploaded(
+      String docKey, String title, String currentLang, String fileName) {
     setState(() {
       if (docKey == 'domicile') _hasDomicile = true;
       if (docKey == 'passport') _hasPassport = true;
@@ -738,7 +817,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const Icon(Icons.check_circle_rounded,
+                  color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -755,8 +835,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
     }
   }
-
-
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -793,7 +871,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           const Text(
             '⚙️ PHYSICAL DEVICE CONNECTION SETTING',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -807,30 +886,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: TextField(
                   controller: _ipController,
                   decoration: const InputDecoration(
-                     hintText: '10.0.2.2 or 192.168.x.x',
-                     isDense: true,
-                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                     border: OutlineInputBorder(),
+                    hintText: '10.0.2.2 or 192.168.x.x',
+                    isDense: true,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(),
                   ),
                 ),
-               ),
-               const SizedBox(width: 12),
-               ElevatedButton(
-                 onPressed: () {
-                   final ip = _ipController.text.trim();
-                   if (ip.isNotEmpty) {
-                     ref.read(apiServiceProvider).setServerIp(ip);
-                     ScaffoldMessenger.of(context).showSnackBar(
-                       SnackBar(
-                         content: Text('Server IP updated to: $ip'),
-                         backgroundColor: AppConstants.secondaryColor,
-                       ),
-                     );
-                   }
-                 },
-                 style: ElevatedButton.styleFrom(backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
-                 child: const Text('Update'),
-               )
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () {
+                  final ip = _ipController.text.trim();
+                  if (ip.isNotEmpty) {
+                    ref.read(apiServiceProvider).setServerIp(ip);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Server IP updated to: $ip'),
+                        backgroundColor: AppConstants.secondaryColor,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppConstants.primaryColor,
+                    foregroundColor: Colors.white),
+                child: const Text('Update'),
+              )
             ],
           )
         ],
@@ -841,7 +923,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   /// AI Smart-Tagging & Classification Engine Dialog
   Future<void> _scanCustomDoc(BuildContext context, String currentLang) async {
     final isUrdu = currentLang == 'ur';
-    
+
     // Pick custom file/image
     try {
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -867,30 +949,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               // Add to dynamic vault list
               ref.read(vaultProvider.notifier).addDoc(suggestedTag, file.name);
-              
-              // Sync with standard profile checkboxes!
-              final tagLower = suggestedTag.toLowerCase();
-              setState(() {
-                if (tagLower.contains('transcript') || tagLower.contains('mark') || tagLower.contains('result')) _hasTranscript = true;
-                if (tagLower.contains('degree')) _hasDegree = true;
-                if (tagLower.contains('cnic') || tagLower.contains('identity')) _hasCnic = true;
-                if (tagLower.contains('domicile')) _hasDomicile = true;
-                if (tagLower.contains('passport')) _hasPassport = true;
-                if (tagLower.contains('ielts') || tagLower.contains('toefl')) _hasIelts = true;
-              });
-
               // Notify user
               ScaffoldMessenger.of(this.context).showSnackBar(
                 SnackBar(
                   content: Row(
                     children: [
-                      const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+                      const Icon(Icons.auto_awesome_rounded,
+                          color: Colors.white, size: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          isUrdu 
-                            ? 'دستاویز سمارٹ ٹیگ ہو گئی: $suggestedTag!' 
-                            : 'AI tagged & verified: $suggestedTag!',
+                          isUrdu
+                              ? 'دستاویز سمارٹ ٹیگ ہو گئی: $suggestedTag!'
+                              : 'AI tagged & verified: $suggestedTag!',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -924,10 +995,12 @@ class _SmartTaggingAnimationDialog extends StatefulWidget {
   });
 
   @override
-  State<_SmartTaggingAnimationDialog> createState() => _SmartTaggingAnimationDialogState();
+  State<_SmartTaggingAnimationDialog> createState() =>
+      _SmartTaggingAnimationDialogState();
 }
 
-class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDialog> {
+class _SmartTaggingAnimationDialogState
+    extends State<_SmartTaggingAnimationDialog> {
   int _currentStep = 0;
   String _detectedType = 'Other Custom Document';
   bool _showSuccessOption = false;
@@ -978,17 +1051,21 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
     // 1. Initializing
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
-    setState(() { _currentStep = 1; });
+    setState(() {
+      _currentStep = 1;
+    });
 
     String extractedText = '';
     String rawOriginalText = '';
-    
+
     // 2. Reading metadata & OCR blocks using Google ML Kit (Offline)
     if (widget.filePath != null) {
       try {
         final inputImage = InputImage.fromFilePath(widget.filePath!);
-        final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-        final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+        final textRecognizer =
+            TextRecognizer(script: TextRecognitionScript.latin);
+        final RecognizedText recognizedText =
+            await textRecognizer.processImage(inputImage);
         rawOriginalText = recognizedText.text;
         extractedText = recognizedText.text.toLowerCase();
         await textRecognizer.close();
@@ -996,13 +1073,17 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
         debugPrint('OCR Error: $e');
       }
     }
-    
+
     if (!mounted) return;
-    setState(() { _currentStep = 2; });
+    setState(() {
+      _currentStep = 2;
+    });
     await Future.delayed(const Duration(milliseconds: 600));
 
     if (!mounted) return;
-    setState(() { _currentStep = 3; });
+    setState(() {
+      _currentStep = 3;
+    });
     await Future.delayed(const Duration(milliseconds: 600));
 
     // Dynamic Title Extraction: Get the first non-empty line of the scanned OCR text!
@@ -1013,33 +1094,63 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
         final trimmed = line.trim();
         if (trimmed.length > 3) {
           // Capitalize each word nicely
-          firstLine = trimmed.split(' ').map((word) => word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '').join(' ');
+          firstLine = trimmed
+              .split(' ')
+              .map((word) => word.isNotEmpty
+                  ? '${word[0].toUpperCase()}${word.substring(1)}'
+                  : '')
+              .join(' ');
           break;
         }
       }
     }
 
     // Auto-detect based on extracted text (fallback to filename if empty or unreadable)
-    String detected = firstLine.isNotEmpty ? firstLine : 'Other Custom Document';
-    final textToSearch = extractedText.isNotEmpty ? extractedText : widget.fileName.toLowerCase();
+    String detected =
+        firstLine.isNotEmpty ? firstLine : 'Other Custom Document';
+    final textToSearch = extractedText.isNotEmpty
+        ? extractedText
+        : widget.fileName.toLowerCase();
 
     // Contextual matching helpers
-    if (textToSearch.contains('cnic') || textToSearch.contains('identity') || textToSearch.contains('national card') || textToSearch.contains('citizen') || textToSearch.contains('b-form') || textToSearch.contains('card')) {
+    if (textToSearch.contains('cnic') ||
+        textToSearch.contains('identity') ||
+        textToSearch.contains('national card') ||
+        textToSearch.contains('citizen') ||
+        textToSearch.contains('b-form') ||
+        textToSearch.contains('card')) {
       detected = firstLine.isNotEmpty ? firstLine : 'CNIC/B-Form Copy';
-    } else if (textToSearch.contains('passport') || textToSearch.contains('pass port')) {
+    } else if (textToSearch.contains('passport') ||
+        textToSearch.contains('pass port')) {
       detected = firstLine.isNotEmpty ? firstLine : 'Passport';
-    } else if (textToSearch.contains('domicile') || textToSearch.contains('domicil')) {
+    } else if (textToSearch.contains('domicile') ||
+        textToSearch.contains('domicil')) {
       detected = firstLine.isNotEmpty ? firstLine : 'Domicile';
-    } else if (textToSearch.contains('recommend') || textToSearch.contains('lor') || textToSearch.contains('reference') || textToSearch.contains('dean')) {
-      detected = firstLine.isNotEmpty ? firstLine : 'Recommendation Letter (LOR)';
-    } else if (textToSearch.contains('exp') || textToSearch.contains('work') || textToSearch.contains('employ')) {
+    } else if (textToSearch.contains('recommend') ||
+        textToSearch.contains('lor') ||
+        textToSearch.contains('reference') ||
+        textToSearch.contains('dean')) {
+      detected =
+          firstLine.isNotEmpty ? firstLine : 'Recommendation Letter (LOR)';
+    } else if (textToSearch.contains('exp') ||
+        textToSearch.contains('work') ||
+        textToSearch.contains('employ')) {
       detected = firstLine.isNotEmpty ? firstLine : 'Experience Certificate';
-    } else if (textToSearch.contains('hope') || textToSearch.contains('expect') || textToSearch.contains('provisional')) {
+    } else if (textToSearch.contains('hope') ||
+        textToSearch.contains('expect') ||
+        textToSearch.contains('provisional')) {
       detected = firstLine.isNotEmpty ? firstLine : 'Hope Certificate';
-    } else if (textToSearch.contains('english') || textToSearch.contains('ielts') || textToSearch.contains('toefl') || textToSearch.contains('proficiency')) {
-      detected = firstLine.isNotEmpty ? firstLine : 'English Proficiency Letter';
-    } else if (textToSearch.contains('purpose') || textToSearch.contains('motivation') || textToSearch.contains('sop')) {
-      detected = firstLine.isNotEmpty ? firstLine : 'Statement of Purpose (SOP)';
+    } else if (textToSearch.contains('english') ||
+        textToSearch.contains('ielts') ||
+        textToSearch.contains('toefl') ||
+        textToSearch.contains('proficiency')) {
+      detected =
+          firstLine.isNotEmpty ? firstLine : 'English Proficiency Letter';
+    } else if (textToSearch.contains('purpose') ||
+        textToSearch.contains('motivation') ||
+        textToSearch.contains('sop')) {
+      detected =
+          firstLine.isNotEmpty ? firstLine : 'Statement of Purpose (SOP)';
     }
 
     if (!mounted) return;
@@ -1054,15 +1165,18 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
   @override
   Widget build(BuildContext context) {
     final steps = widget.isUrdu ? _urSteps : _enSteps;
-    
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          const Icon(Icons.auto_awesome_rounded, color: AppConstants.secondaryColor, size: 24),
+          const Icon(Icons.auto_awesome_rounded,
+              color: AppConstants.secondaryColor, size: 24),
           const SizedBox(width: 8),
           Text(
-            widget.isUrdu ? 'اے آئی دستاویزی اسکینر' : 'AI Ingestor & Smart-Tag',
+            widget.isUrdu
+                ? 'اے آئی دستاویزی اسکینر'
+                : 'AI Ingestor & Smart-Tag',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ],
@@ -1073,19 +1187,25 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
         children: [
           Text(
             '${widget.isUrdu ? 'فائل' : 'File'}: ${widget.fileName}',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontFamily: 'monospace'),
+            style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+                fontFamily: 'monospace'),
           ),
           const SizedBox(height: 20),
-          
           if (!_showSuccessOption) ...[
             Center(
               child: Column(
                 children: [
-                  const CircularProgressIndicator(color: AppConstants.secondaryColor),
+                  const CircularProgressIndicator(
+                      color: AppConstants.secondaryColor),
                   const SizedBox(height: 16),
                   Text(
                     steps[_currentStep],
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Colors.black87),
                   ),
                 ],
               ),
@@ -1100,20 +1220,29 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: Colors.green, size: 32),
+                  const Icon(Icons.check_circle_rounded,
+                      color: Colors.green, size: 32),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.isUrdu ? 'خودکار اے آئی سمارٹ نام:' : 'AI Scanned Document Title:',
-                          style: TextStyle(fontSize: 10, color: Colors.green.shade800, fontWeight: FontWeight.bold),
+                          widget.isUrdu
+                              ? 'خودکار اے آئی سمارٹ نام:'
+                              : 'AI Scanned Document Title:',
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.green.shade800,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           _detectedType,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.black87),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1125,23 +1254,39 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
             ),
             const SizedBox(height: 18),
             Text(
-              widget.isUrdu ? 'دستاویز کا نام (آپ تبدیل بھی کر سکتے ہیں):' : 'Customize Scanned Title Name:',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54),
+              widget.isUrdu
+                  ? 'دستاویز کا نام (آپ تبدیل بھی کر سکتے ہیں):'
+                  : 'Customize Scanned Title Name:',
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54),
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.edit_note_rounded, color: AppConstants.secondaryColor),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                prefixIcon: const Icon(Icons.edit_note_rounded,
+                    color: AppConstants.secondaryColor),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87),
             ),
             const SizedBox(height: 14),
             Text(
-              widget.isUrdu ? 'یا پہلے سے طے شدہ ٹیگز میں سے منتخب کریں:' : 'Or Quick Match to Predefined Tag:',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black45),
+              widget.isUrdu
+                  ? 'یا پہلے سے طے شدہ ٹیگز میں سے منتخب کریں:'
+                  : 'Or Quick Match to Predefined Tag:',
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black45),
             ),
             const SizedBox(height: 6),
             Container(
@@ -1152,7 +1297,9 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value: _suggestions.contains(_detectedType) ? _detectedType : 'Other Custom Document',
+                  value: _suggestions.contains(_detectedType)
+                      ? _detectedType
+                      : 'Other Custom Document',
                   isExpanded: true,
                   onChanged: (newValue) {
                     if (newValue != null) {
@@ -1183,14 +1330,18 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
               ElevatedButton(
                 onPressed: () {
                   final finalName = _nameController.text.trim();
-                  widget.onClassificationComplete(finalName.isNotEmpty ? finalName : _detectedType);
+                  widget.onClassificationComplete(
+                      finalName.isNotEmpty ? finalName : _detectedType);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppConstants.secondaryColor,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text(widget.isUrdu ? 'ٹیگ اور والٹ کریں' : 'Tag & Save to Vault'),
+                child: Text(widget.isUrdu
+                    ? 'ٹیگ اور والٹ کریں'
+                    : 'Tag & Save to Vault'),
               ),
             ]
           : null,
