@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants.dart';
+import '../../core/translations.dart';
 import '../../providers/language_provider.dart';
 
 class AboutUsScreen extends ConsumerWidget {
@@ -14,7 +15,10 @@ class AboutUsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
       appBar: AppBar(
-        title: Text(isUrdu ? 'ہمارے بارے میں' : 'About Wazifa AI'),
+        title: Text(
+          isUrdu ? 'ہمارے بارے میں' : 'About Wazifa AI',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0.5,
@@ -24,120 +28,227 @@ class AboutUsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Educational AI Section moved from dashboard
-            Text(
-              isUrdu ? 'مصنوعی ذہانت (AI) کے چار ایجنٹس' : '🤖 Wazifa AI Cognitive Suite',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              isUrdu 
-                  ? 'جانیں کہ ہماری مصنوعی ذہانت آپ کے اسکالرشپ کے سفر کو کس طرح خودکار بناتی ہے:'
-                  : 'Wazifa AI deploys 4 specialized AI Agents to automate and optimize your global scholarship hunt:',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            // Hero Banner Card with HSL gradient
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppConstants.primaryColor, AppConstants.secondaryColor],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppConstants.primaryColor.withOpacity(0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.school_rounded, color: Colors.white, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    isUrdu ? 'وظیفہ اے آئی' : 'Wazifa AI',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isUrdu
+                        ? 'پاکستان کا پہلا ایجنٹک اسکالرشپ انٹیلیجنس سسٹم'
+                        : 'Pakistan\'s First Agentic Scholarship Intelligence System',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
-            
-            // Agent 1: Ingestor
-            _buildAgentSuiteCard(
+
+            // One-Line Pitch Section
+            _buildSectionCard(
               context,
-              title: isUrdu ? '۱. اے آئی پروفائل اسکینر (Ingestor)' : '1. AI Profile Ingestor (Gemini Vision)',
-              description: isUrdu 
-                  ? 'اپنے تعلیمی ٹرانسکرپٹ یا رزلٹ کارڈ کی تصویر اپ لوڈ کریں اور ہمارا اے آئی خودکار طور پر آپ کا نام، یونیورسٹی، اور سی جی پی اے نکال لے گا۔'
-                  : 'Upload an image of your transcript; our Vision OCR extracts your CGPA, Major, and Institution instantly to auto-fill your profile.',
-              icon: Icons.document_scanner_rounded,
-              color: Colors.blue.shade600,
+              title: isUrdu ? 'ہمارا مقصد' : 'Our Mission',
+              icon: Icons.lightbulb_outline_rounded,
+              child: Text(
+                isUrdu
+                    ? '"دوسرے تمام ٹولز پاکستانی طلباء کو صرف یہ بتاتے ہیں کہ کون سی اسکالرشپس دستیاب ہیں۔ وظیفہ کے ایجنٹس آپ کے دستاویزات کو اسکین کرتے ہیں، آپ کی کمیوں کو تلاش کرتے ہیں، آپ کے ای میلز ڈرافٹ کرتے ہیں، آپ کے فارم خودکار بھرتے ہیں، اور ڈیڈ لائن سے پہلے یاد دلاتے ہیں — اردو میں، پاکستان کے لیے، خود بخود۔"'
+                    : '"Every other tool tells Pakistani students what scholarships exist. Wazifa\'s agents scan your documents, find your gaps, draft your emails, fill your forms, and remind you before deadlines close — in Urdu, for Pakistan, automatically."',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontStyle: FontStyle.italic,
+                  height: 1.5,
+                  color: AppConstants.primaryColor,
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            
-            // Agent 2: Matcher
-            _buildAgentSuiteCard(
+            const SizedBox(height: 16),
+
+            // How it works Section
+            _buildSectionCard(
               context,
-              title: isUrdu ? '۲. سمارٹ اسکالرشپ میچر (Matcher)' : '2. Smart Matcher Agent',
-              description: isUrdu 
-                  ? 'آپ کی تعلیمی اہلیت کو دنیا بھر کی ہزاروں اسکالرشپس کی ضروریات کے ساتھ سیکنڈوں میں ملا دیتا ہے۔'
-                  : 'Aligns your exact academic records against thousands of global scholarship requirements to give you a personalized matched list.',
-              icon: Icons.fact_check_rounded,
-              color: Colors.green.shade600,
+              title: isUrdu ? 'یہ کیسے کام کرتا ہے؟' : 'How It Works',
+              icon: Icons.settings_suggest_rounded,
+              child: Column(
+                children: [
+                  _buildStepRow(
+                    stepNum: '1',
+                    title: isUrdu ? 'دستاویز اسکینر (Ingestor)' : 'Document Ingestor',
+                    description: isUrdu
+                        ? 'آپ کے مارک شیٹ، ٹرانسکریپٹ، آئی ای ایل ٹی ایس کے نتائج کو اسکین کرکے ڈیٹا محفوظ کرتا ہے۔'
+                        : 'Extracts your CGPA, degree details, and key metrics directly from photos using Gemini Vision API.',
+                  ),
+                  const Divider(height: 24),
+                  _buildStepRow(
+                    stepNum: '2',
+                    title: isUrdu ? 'اسکالرشپ میچر (Matcher)' : 'Scholarship Matcher',
+                    description: isUrdu
+                        ? 'آپ کے پروفائل کو 50 سے زائد پاکستانی اور بین الاقوامی اسکالرشپس سے میچ کرتا ہے۔'
+                        : 'Compares your academic history against our pre-seeded database of global opportunities tailored for Pakistan.',
+                  ),
+                  const Divider(height: 24),
+                  _buildStepRow(
+                    stepNum: '3',
+                    title: isUrdu ? 'گیپ ڈیٹیکٹر (Gap Detector)' : 'Gap Detector',
+                    description: isUrdu
+                        ? 'ہر اسکالرشپ کے لیے درکار غائب دستاویزات اور ان کے حصول کے وقت کی نشاندہی کرتا ہے۔'
+                        : 'Identifies missing documents (like domicile or police NOC) and calculates acquisition times.',
+                  ),
+                  const Divider(height: 24),
+                  _buildStepRow(
+                    stepNum: '4',
+                    title: isUrdu ? 'ایکشن ایگزیکیوٹر (Actor)' : 'Action Execution Agent',
+                    description: isUrdu
+                        ? 'سفارشی خط کی ای میلز ڈرافٹ کرتا ہے، فارم خودکار بھرتا ہے، اور ایس او پی لکھتا ہے۔'
+                        : 'Drafts emails to professors, generates Statement of Purpose (SOP) openings, and pre-fills mock forms.',
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            
-            // Agent 3: Gap Detector
-            _buildAgentSuiteCard(
+            const SizedBox(height: 16),
+
+            // Hackathon / Team Section
+            _buildSectionCard(
               context,
-              title: isUrdu ? '۳. دستاویزی خلا کا پتہ لگانے والا (Gap Radar)' : '3. Gap Detector & Timeline Radar',
-              description: isUrdu 
-                  ? 'اسکالرشپ کے لیے درکار لاپتہ دستاویزات کی نشاندہی کرتا ہے اور انہیں حاصل کرنے کا درست وقت اور ترجیحات دکھاتا ہے۔'
-                  : 'Scans scholarship checklists against your Doc Vault, highlights missing documents, and schedules timelines to obtain them.',
-              icon: Icons.track_changes_rounded,
-              color: Colors.orange.shade700,
+              title: isUrdu ? 'ہمارا وژن' : 'Why We Built This',
+              icon: Icons.favorite_border_rounded,
+              child: Text(
+                isUrdu
+                    ? 'ہر سال ہزاروں باصلاحیت پاکستانی طلباء اسکالرشپ کے مواقع گنوا دیتے ہیں کیونکہ معلومات بکھری ہوئی ہیں اور درخواست کے عمل پیچیدہ ہیں۔ وظیفہ اے آئی گوگل کے جدید ترین ایجنٹ سسٹمز (Google Antigravity) اور جیمنائی ماڈلز کی طاقت کا استعمال کرتے ہوئے اس فرق کو پُر کرتا ہے۔'
+                    : 'Every year, thousands of talented Pakistani students miss life-changing scholarship opportunities because information is scattered and application processes are confusing. Wazifa AI bridges this gap using state-of-the-art agent orchestration and Google Antigravity reasoning layers.',
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: Colors.grey.shade800,
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            
-            // Agent 4: Automator
-            _buildAgentSuiteCard(
-              context,
-              title: isUrdu ? '۴. اے آئی ایکشن انجن (Actor)' : '4. AI Action & Application Engine',
-              description: isUrdu 
-                  ? 'خودکار طریقے سے فارم بھرتا ہے، پروفیسرز کے لیے ای میلز تیار کرتا ہے، اور اہم تاریخیں آپ کے کیلنڈر پر درج کرتا ہے۔'
-                  : 'Simulates direct actions: auto-fills complex applications, drafts professional recommendation emails to professors, and schedules calendar events.',
-              icon: Icons.bolt_rounded,
-              color: Colors.purple.shade600,
-            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAgentSuiteCard(BuildContext context, {required String title, required String description, required IconData icon, required Color color}) {
+  Widget _buildSectionCard(BuildContext context, {required String title, required IconData icon, required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
-        border: Border(
-          left: BorderSide(color: color, width: 5),
-        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+          Row(
+            children: [
+              Icon(icon, color: AppConstants.primaryColor, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppConstants.primaryColor,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.4),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const Divider(height: 24),
+          child,
         ],
       ),
+    );
+  }
+
+  Widget _buildStepRow({required String stepNum, required String title, required String description}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: const BoxDecoration(
+            color: AppConstants.secondaryColor,
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            stepNum,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

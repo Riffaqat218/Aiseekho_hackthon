@@ -19,16 +19,6 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
   });
 
   bool _isDocAvailable(String docName, WidgetRef ref) {
-    if (profile == null) return false;
-    final d = docName.toLowerCase();
-    if (d.contains('transcript') || d.contains('marksheet')) return profile!['cgpa'] != null;
-    if (d.contains('domicile')) return profile!['has_domicile'] ?? false;
-    if (d.contains('passport')) return profile!['has_passport'] ?? false;
-    if (d.contains('ielts') || d.contains('toefl') || d.contains('english')) return profile!['has_ielts'] ?? false;
-    if (d.contains('cnic') || d.contains('identity') || d.contains('card')) return profile!['has_cnic'] ?? false;
-    if (d.contains('income') || d.contains('recommendation') || d.contains('finance')) return profile!['has_income'] ?? false;
-    
-    // Fallback to check Riverpod AI Smart-Tagged dynamic document vault
     return ref.watch(vaultProvider.notifier).isAvailable(docName);
   }
 

@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class ScholarshipService {
   private readonly logger = new Logger(ScholarshipService.name);
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly aiService: AiService,
+  ) {}
 
   async getAllScholarships() {
     const { data, error } = await this.supabaseService
@@ -192,7 +196,8 @@ export class ScholarshipService {
 
     // Step 4: Actor Agent (Simulation Chain)
     // Create Auto-filled form details
-    const mockForm = {
+    const aiDetails = await this.aiService.generateActionDetails(profile, scholarship, missingDocs);
+    const mockForm = aiDetails.simulatedForm || {
       scholarshipName: scholarship.name,
       applicantName: studentName,
       previousInstitution: university,
@@ -201,30 +206,14 @@ export class ScholarshipService {
       applicationStatus: 'DRAFT_COMPLETED',
       completeness: '85%',
     };
-
-    // Draft Email
-    const professorEmail = `
-Subject: Recommendation Letter Request - ${studentName} (${university})
-
-Dear Professor,
-
-I hope this email finds you well. I am writing to request a recommendation letter for my application to the "${scholarship.name}". 
-
-As my professor at ${university} where I completed my ${degree} in ${field} (graduating with a CGPA of ${cgpa}), your academic endorsement would significantly strengthen my candidacy.
-
-I have attached my academic transcript and statement of purpose for your review. Thank you very much for your time and consideration.
-
-Warm regards,
-${studentName}
-    `.trim();
-
-    // Calendar Deadline Reminder
-    const calendarEvent = {
+    const professorEmail = aiDetails.professorEmail || `Subject: Recommendation Letter Request - ${studentName} (${university})\n\nDear Professor,\n\nI hope this email finds you well. I am writing to request a recommendation letter for my application to the "${scholarship.name}".\n\nWarm regards,\n${studentName}`;
+    const calendarEvent = aiDetails.calendarEvent || {
       title: `Submit ${scholarship.name} Application`,
       deadline: scholarship.deadline,
       description: `Deadline for ${scholarship.name}. Missing items: ${missingDocs.join(', ')}.`,
       reminderDaysBefore: 7,
     };
+    const sopIntro = aiDetails.sopIntro || `As a dedicated graduate in ${field} from ${university} with a CGPA of ${cgpa}, my academic excellence and research drive inspire my aspiration to pursue advanced studies in this field. Securing the prestigious ${scholarship.name} represents the ideal catalyst to align my background with impactful global solutions, contributing directly to technological progress in Pakistan.`;
 
     await addTrace(
       'Actor Agent (Simulate Action Chain)',
@@ -237,6 +226,7 @@ ${studentName}
         mockForm,
         professorEmail,
         calendarEvent,
+        sopIntro,
       }),
     );
 
@@ -254,6 +244,7 @@ ${studentName}
       simulatedForm: mockForm,
       draftedEmail: professorEmail,
       calendarEvent: calendarEvent,
+      sopIntro: sopIntro,
     };
   }
 

@@ -7,6 +7,8 @@ import '../../providers/language_provider.dart';
 import '../../services/api_service.dart';
 import 'scholarship_details_screen.dart';
 import '../../widgets/common/language_switch.dart';
+import 'mock_form_screen.dart';
+import 'milestones_screen.dart';
 
 class ScholarshipsScreen extends ConsumerStatefulWidget {
   const ScholarshipsScreen({super.key});
@@ -159,14 +161,7 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
   }
 
   bool _isDocAvailable(String docName) {
-    final d = docName.toLowerCase();
-    if (d.contains('transcript') || d.contains('marksheet')) return _hasTranscript;
-    if (d.contains('domicile')) return _hasDomicile;
-    if (d.contains('passport')) return _hasPassport;
-    if (d.contains('ielts') || d.contains('toefl') || d.contains('english')) return _hasIelts;
-    if (d.contains('cnic') || d.contains('identity') || d.contains('card')) return _hasCnic;
-    if (d.contains('income') || d.contains('recommendation') || d.contains('finance')) return _hasIncome;
-    return false;
+    return ref.watch(vaultProvider.notifier).isAvailable(docName);
   }
 
   String _getAcquisitionTimeline(String docName) {
@@ -694,6 +689,24 @@ class ActionSimulationSheetState extends ConsumerState<ActionSimulationSheet> {
                           _buildDetailRow('Major', _results!['simulatedForm']['major']),
                           _buildDetailRow('Completeness', _results!['simulatedForm']['completeness']),
                           _buildDetailRow('Status', _results!['simulatedForm']['applicationStatus']),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MockFormScreen(formData: _results!['simulatedForm']),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.assignment_ind_outlined, size: 16),
+                            label: const Text('Open Visual Portal Form Layout', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppConstants.primaryColor,
+                              side: const BorderSide(color: AppConstants.primaryColor),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -725,6 +738,24 @@ class ActionSimulationSheetState extends ConsumerState<ActionSimulationSheet> {
                           _buildDetailRow('Deadline Date', _results!['calendarEvent']['deadline']),
                           _buildDetailRow('Description', _results!['calendarEvent']['description']),
                           _buildDetailRow('Alert Priority', 'Scheduled (7 days before)'),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MilestonesScreen(calendarEvent: _results!['calendarEvent']),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.date_range_outlined, size: 16),
+                            label: const Text('Open Deadline Milestones Page', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppConstants.primaryColor,
+                              side: const BorderSide(color: AppConstants.primaryColor),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -738,7 +769,7 @@ class ActionSimulationSheetState extends ConsumerState<ActionSimulationSheet> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
                         child: Text(
-                          "As a dedicated graduate in ${_results!['simulatedForm']['major'] ?? 'Software Engineering'} from ${_results!['simulatedForm']['previousInstitution'] ?? 'NUST Islamabad'} with a CGPA of ${_results!['simulatedForm']['cgpa']?.toString() ?? '3.85'}, my academic excellence and research drive inspire my aspiration to pursue advanced studies in this field. Securing the prestigious ${widget.scholarship['name'] ?? 'Fulbright Scholarship'} represents the ideal catalyst to align my background with impactful global solutions, contributing directly to technological progress in Pakistan.",
+                          _results!['sopIntro'] ?? "As a dedicated graduate in ${_results!['simulatedForm']['major'] ?? 'Software Engineering'} from ${_results!['simulatedForm']['previousInstitution'] ?? 'NUST Islamabad'} with a CGPA of ${_results!['simulatedForm']['cgpa']?.toString() ?? '3.85'}, my academic excellence and research drive inspire my aspiration to pursue advanced studies in this field. Securing the prestigious ${widget.scholarship['name'] ?? 'Fulbright Scholarship'} represents the ideal catalyst to align my background with impactful global solutions, contributing directly to technological progress in Pakistan.",
                           style: const TextStyle(fontFamily: 'serif', fontSize: 12, height: 1.45, fontStyle: FontStyle.italic, color: Colors.black87),
                         ),
                       ),

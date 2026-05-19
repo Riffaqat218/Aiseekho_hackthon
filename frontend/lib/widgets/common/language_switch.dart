@@ -16,7 +16,7 @@ class LanguageSwitch extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
         border: Border.all(color: Colors.grey.shade300),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -33,7 +33,7 @@ class LanguageSwitch extends ConsumerWidget {
         ref.read(languageProvider.notifier).setLanguage(code);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected ? AppConstants.primaryColor : Colors.transparent,
           borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
@@ -43,6 +43,7 @@ class LanguageSwitch extends ConsumerWidget {
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.black87,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 11,
           ),
         ),
       ),
