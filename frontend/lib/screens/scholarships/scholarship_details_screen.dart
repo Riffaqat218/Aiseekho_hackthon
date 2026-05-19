@@ -28,7 +28,8 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
     if (d.contains('passport')) return '4 weeks';
     if (d.contains('ielts') || d.contains('toefl')) return '3 weeks';
     if (d.contains('cnic')) return '1 week';
-    if (d.contains('income')) return '2 weeks';
+    if (d.contains('transcript')) return '1 week';
+    if (d.contains('degree')) return '2 weeks';
     return '1 week';
   }
 
@@ -257,47 +258,93 @@ class ScholarshipDetailsScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: docs.length,
-                      separatorBuilder: (context, index) => const Divider(height: 24),
-                      itemBuilder: (context, index) {
-                        final d = docs[index];
-                        final available = _isDocAvailable(d, ref);
-                        return Row(
-                          children: [
-                            Icon(
-                              available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-                              color: available ? Colors.green : Colors.orange,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    d,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    child: Column(
+                      children: [
+                        // CGPA eligibility row
+                        Builder(builder: (context) {
+                          final userCgpa = double.tryParse(profile?['cgpa']?.toString() ?? '0') ?? 0;
+                          final minCgpaVal = double.tryParse(minCgpa.toString()) ?? 99;
+                          final cgpaMet = userCgpa >= minCgpaVal;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  cgpaMet ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                  color: cgpaMet ? Colors.green : Colors.orange,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'CGPA (${userCgpa.toStringAsFixed(2)} / ${minCgpaVal.toStringAsFixed(2)} min)',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        cgpaMet
+                                            ? (isUrdu ? 'سی جی پی اے درکار حد سے زیادہ ہے' : 'CGPA meets minimum requirement')
+                                            : (isUrdu ? 'سی جی پی اے درکار حد سے کم ہے' : 'CGPA below minimum requirement'),
+                                        style: TextStyle(
+                                          color: cgpaMet ? Colors.green.shade700 : Colors.orange.shade700,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    available
-                                        ? (isUrdu ? 'تصدیق شدہ اور دستیاب ہے' : 'Available in Vault')
-                                        : '${isUrdu ? 'غائب - حاصل کرنے کا وقت' : 'Missing - Acquisition timeline'}: ${_getAcquisitionTimeline(d)}',
-                                    style: TextStyle(
-                                      color: available ? Colors.green.shade700 : Colors.orange.shade700,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        );
-                      },
+                          );
+                        }),
+                        const Divider(height: 16),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: docs.length,
+                          separatorBuilder: (context, index) => const Divider(height: 24),
+                          itemBuilder: (context, index) {
+                            final d = docs[index];
+                            final available = _isDocAvailable(d, ref);
+                            return Row(
+                              children: [
+                                Icon(
+                                  available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                  color: available ? Colors.green : Colors.orange,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        d,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        available
+                                            ? (isUrdu ? 'تصدیق شدہ اور دستیاب ہے' : 'Available in Vault')
+                                            : '${isUrdu ? 'غائب - حاصل کرنے کا وقت' : 'Missing - Acquisition timeline'}: ${_getAcquisitionTimeline(d)}',
+                                        style: TextStyle(
+                                          color: available ? Colors.green.shade700 : Colors.orange.shade700,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 28),

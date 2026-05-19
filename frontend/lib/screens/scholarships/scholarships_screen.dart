@@ -36,8 +36,8 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
   bool _hasDomicile = false;
   bool _hasPassport = false;
   bool _hasIelts = false;
-  bool _hasIncome = false;
   bool _hasTranscript = false;
+  bool _hasDegree = false;
 
   @override
   void initState() {
@@ -126,8 +126,8 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
         _hasDomicile = profile['has_domicile'] ?? false;
         _hasPassport = profile['has_passport'] ?? false;
         _hasIelts = profile['has_ielts'] ?? false;
-        _hasIncome = profile['has_income'] ?? false;
-        _hasTranscript = profile['cgpa'] != null;
+        _hasTranscript = profile['has_transcript'] ?? false;
+        _hasDegree = profile['has_degree'] ?? false;
       }
       final countries = _matchedGroups.keys.toList();
       _tabController = TabController(
@@ -171,7 +171,8 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
     if (d.contains('passport')) return '4 wks';
     if (d.contains('ielts') || d.contains('toefl')) return '3 wks';
     if (d.contains('cnic')) return '1 wk';
-    if (d.contains('income')) return '2 wks';
+    if (d.contains('transcript')) return '1 wk';
+    if (d.contains('degree')) return '2 wks';
     return '1 wk';
   }
 
@@ -493,23 +494,47 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
             Wrap(
               spacing: 8,
               runSpacing: 4,
-              children: docs.map((d) {
-                final available = _isDocAvailable(d);
-                return Chip(
-                  avatar: Icon(
-                    available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-                    size: 14,
-                    color: available ? Colors.green : Colors.orange,
-                  ),
-                  label: Text(
-                    available ? '$d (Available)' : '$d (Missing - Timeline: ${_getAcquisitionTimeline(d)})', 
-                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)
-                  ),
-                  backgroundColor: available ? Colors.green.shade50 : Colors.orange.shade50,
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                );
-              }).toList(),
+              children: [
+                // CGPA eligibility chip
+                Builder(builder: (context) {
+                  final userCgpa = double.tryParse(_profile?['cgpa']?.toString() ?? '0') ?? 0;
+                  final minCgpa = double.tryParse(s['min_cgpa']?.toString() ?? '99') ?? 99;
+                  final cgpaMet = userCgpa >= minCgpa;
+                  return Chip(
+                    avatar: Icon(
+                      cgpaMet ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                      size: 14,
+                      color: cgpaMet ? Colors.green : Colors.orange,
+                    ),
+                    label: Text(
+                      cgpaMet
+                          ? 'CGPA ${userCgpa.toStringAsFixed(2)} ≥ ${minCgpa.toStringAsFixed(2)} (Eligible)'
+                          : 'CGPA ${userCgpa.toStringAsFixed(2)} < ${minCgpa.toStringAsFixed(2)} (Not Met)',
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: cgpaMet ? Colors.green.shade50 : Colors.orange.shade50,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  );
+                }),
+                ...docs.map((d) {
+                  final available = _isDocAvailable(d);
+                  return Chip(
+                    avatar: Icon(
+                      available ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                      size: 14,
+                      color: available ? Colors.green : Colors.orange,
+                    ),
+                    label: Text(
+                      available ? '$d (Available)' : '$d (Missing - Timeline: ${_getAcquisitionTimeline(d)})', 
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)
+                    ),
+                    backgroundColor: available ? Colors.green.shade50 : Colors.orange.shade50,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  );
+                }),
+              ],
             ),
             
             const SizedBox(height: 16),

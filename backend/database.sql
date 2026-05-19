@@ -74,7 +74,8 @@ CREATE TABLE public.student_profiles (
   has_passport BOOLEAN DEFAULT FALSE,
   has_ielts BOOLEAN DEFAULT FALSE,
   has_cnic BOOLEAN DEFAULT FALSE,
-  has_income BOOLEAN DEFAULT FALSE,
+  has_transcript BOOLEAN DEFAULT FALSE,
+  has_degree BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL
 );
@@ -104,27 +105,27 @@ CREATE POLICY "Anyone can view scholarships." ON public.scholarships FOR SELECT 
 -- Seed Scholarships Table (15+ real matched scholarships categorized by country)
 INSERT INTO public.scholarships (name, country, min_cgpa, required_degree, required_documents, deadline) VALUES
 -- Local / Pakistan
-('HEC Need-Based Scholarship', 'Pakistan', 2.00, 'Bachelor', ARRAY['Transcript', 'Income Certificate', 'CNIC Copy'], '2026-06-30'),
-('PEEF Master''s Level Scholarship', 'Pakistan', 2.50, 'Master', ARRAY['Transcript', 'Domicile', 'Income Certificate'], '2026-08-15'),
+('HEC Need-Based Scholarship', 'Pakistan', 2.00, 'Bachelor', ARRAY['Transcript', 'Degree Certificate', 'CNIC Copy', 'Domicile'], '2026-06-30'),
+('PEEF Master''s Level Scholarship', 'Pakistan', 2.50, 'Master', ARRAY['Transcript', 'Degree Certificate', 'Domicile', 'CNIC Copy'], '2026-08-15'),
 ('Ehsaas Undergraduate Scholarship', 'Pakistan', 2.00, 'Bachelor', ARRAY['Transcript', 'Admission Letter', 'CNIC Copy'], '2026-07-31'),
-('HEC Indigenous PhD Fellowship', 'Pakistan', 3.00, 'PhD', ARRAY['Transcript', 'Research Proposal', 'Domicile'], '2026-09-30'),
-('Fauji Foundation Excellence Award', 'Pakistan', 2.50, 'Bachelor', ARRAY['Transcript', 'Fauji Card Copy', 'Domicile'], '2026-08-31'),
+('HEC Indigenous PhD Fellowship', 'Pakistan', 3.00, 'PhD', ARRAY['Transcript', 'Degree Certificate', 'Research Proposal', 'Domicile'], '2026-09-30'),
+('Fauji Foundation Excellence Award', 'Pakistan', 2.50, 'Bachelor', ARRAY['Transcript', 'Degree Certificate', 'Domicile'], '2026-08-31'),
 
 -- USA
-('Fulbright Foreign Student Program', 'USA', 3.00, 'Master', ARRAY['Transcript', 'GRE Score', '3 Recommendation Letters', 'TOEFL Score'], '2026-10-15'),
-('Hubert H. Humphrey Fellowship', 'USA', 3.00, 'Master', ARRAY['Transcript', 'TOEFL Score', '5 Years Work Exp Certificate', '2 Recommendation Letters'], '2026-11-01'),
+('Fulbright Foreign Student Program', 'USA', 3.00, 'Master', ARRAY['Transcript', 'Degree Certificate', 'Statement of Purpose', 'TOEFL Score', 'Recommendation Letter'], '2026-10-15'),
+('Hubert H. Humphrey Fellowship', 'USA', 3.00, 'Master', ARRAY['Transcript', 'Degree Certificate', 'TOEFL Score', 'Personal Statement', 'Recommendation Letter'], '2026-11-01'),
 ('Global UGRAD Exchange Program', 'USA', 2.50, 'Bachelor', ARRAY['Transcript', 'Personal Statement', 'Recommendation Letter'], '2026-12-15'),
-('AAUW International Fellowships', 'USA', 3.00, 'Master', ARRAY['Transcript', 'Research Proposal', 'TOEFL Score', '2 Letters of Recommendation'], '2026-11-15'),
+('AAUW International Fellowships', 'USA', 3.00, 'Master', ARRAY['Transcript', 'Degree Certificate', 'Research Proposal', 'TOEFL Score', 'Recommendation Letter'], '2026-11-15'),
 
 -- Germany
-('DAAD Development-Related Postgraduate Courses', 'Germany', 2.70, 'Master', ARRAY['Transcript', 'IELTS Score', '2 Years Work Exp Certificate', 'Motivation Letter'], '2026-10-31'),
-('Heinrich Böll Foundation Scholarships', 'Germany', 3.00, 'Master', ARRAY['Transcript', 'German Language Certificate', 'Motivation Letter', 'Recommendation Letter'], '2026-09-01'),
-('KAAD Scholarship Program', 'Germany', 2.80, 'Master', ARRAY['Transcript', 'Church/NGO Recommendation', 'Motivation Letter'], '2026-11-30'),
+('DAAD Development-Related Postgraduate Courses', 'Germany', 2.70, 'Master', ARRAY['Transcript', 'Degree Certificate', 'IELTS Score', 'Motivation Letter'], '2026-10-31'),
+('Heinrich Böll Foundation Scholarships', 'Germany', 3.00, 'Master', ARRAY['Transcript', 'Degree Certificate', 'Motivation Letter', 'Recommendation Letter'], '2026-09-01'),
+('KAAD Scholarship Program', 'Germany', 2.80, 'Master', ARRAY['Transcript', 'Degree Certificate', 'Recommendation Letter', 'Motivation Letter'], '2026-11-30'),
 
 -- United Kingdom
-('Commonwealth Master''s Scholarships', 'UK', 3.00, 'Master', ARRAY['Transcript', 'IELTS Score', '3 Recommendation Letters', 'Offer Letter'], '2026-12-01'),
-('Chevening Scholarships', 'UK', 3.00, 'Master', ARRAY['Transcript', 'IELTS Score', '2 Years Work Exp Certificate', '2 Recommendation Letters'], '2026-11-05'),
-('Gates Cambridge Scholarship', 'UK', 3.50, 'PhD', ARRAY['Transcript', 'Gates Reference', 'Research Proposal', 'IELTS Score'], '2026-10-10');
+('Commonwealth Master''s Scholarships', 'UK', 3.00, 'Master', ARRAY['Transcript', 'Degree Certificate', 'IELTS Score', 'Recommendation Letter'], '2026-12-01'),
+('Chevening Scholarships', 'UK', 3.00, 'Master', ARRAY['Transcript', 'Degree Certificate', 'IELTS Score', 'Personal Statement', 'Recommendation Letter'], '2026-11-05'),
+('Gates Cambridge Scholarship', 'UK', 3.50, 'PhD', ARRAY['Transcript', 'Degree Certificate', 'Research Proposal', 'IELTS Score'], '2026-10-10');
 
 -- Create table for Action Traces (for Antigravity execution tracking)
 CREATE TABLE public.action_traces (

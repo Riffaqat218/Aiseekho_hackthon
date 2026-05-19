@@ -51,7 +51,8 @@ export class ProfileService {
       has_passport,
       has_ielts,
       has_cnic,
-      has_income
+      has_transcript,
+      has_degree
     } = profileData;
 
     try {
@@ -69,7 +70,8 @@ export class ProfileService {
           has_passport: has_passport ?? false,
           has_ielts: has_ielts ?? false,
           has_cnic: has_cnic ?? false,
-          has_income: has_income ?? false,
+          has_transcript: has_transcript ?? false,
+          has_degree: has_degree ?? false,
           updated_at: new Date().toISOString(),
         })
         .select()

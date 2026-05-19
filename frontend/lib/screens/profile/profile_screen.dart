@@ -37,7 +37,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _hasPassport = false;
   bool _hasIelts = false;
   bool _hasCnic = false;
-  bool _hasIncome = false;
+  bool _hasTranscript = false;
+  bool _hasDegree = false;
 
   @override
   void initState() {
@@ -95,7 +96,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _hasPassport = profile['has_passport'] ?? false;
         _hasIelts = profile['has_ielts'] ?? false;
         _hasCnic = profile['has_cnic'] ?? false;
-        _hasIncome = profile['has_income'] ?? false;
+        _hasTranscript = profile['has_transcript'] ?? false;
+        _hasDegree = profile['has_degree'] ?? false;
       });
     }
     setState(() => _isLoading = false);
@@ -136,7 +138,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             'has_passport': _hasPassport,
             'has_ielts': _hasIelts,
             'has_cnic': _hasCnic,
-            'has_income': _hasIncome,
+            'has_transcript': _hasTranscript,
+            'has_degree': _hasDegree,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           });
 
@@ -211,7 +214,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _hasDomicile = false;
       _hasPassport = false;
       _hasIelts = false;
-      _hasIncome = false;
+      _hasTranscript = false;
+      _hasDegree = false;
     } else if (sampleType == 'NUST') {
       ocrResult = {
         'name': 'Aisha Rahman',
@@ -224,7 +228,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _hasDomicile = true;
       _hasPassport = false;
       _hasIelts = true;
-      _hasIncome = false;
+      _hasTranscript = false;
+      _hasDegree = false;
     } else {
       ocrResult = {
         'name': 'Bilal Ahmed',
@@ -237,7 +242,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _hasDomicile = true;
       _hasPassport = true;
       _hasIelts = false;
-      _hasIncome = true;
+      _hasTranscript = true;
+      _hasDegree = true;
     }
 
     // Call scanning API to log on backend database
@@ -454,7 +460,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const Divider(),
           _buildDocUploadRow(Translations.getText('cnic', currentLang), _hasCnic, 'cnic', currentLang),
           const Divider(),
-          _buildDocUploadRow(Translations.getText('income', currentLang), _hasIncome, 'income', currentLang),
+          _buildDocUploadRow(Translations.getText('transcript', currentLang), _hasTranscript, 'transcript', currentLang),
+          const Divider(),
+          _buildDocUploadRow(Translations.getText('degree', currentLang), _hasDegree, 'degree', currentLang),
           
           if (customDocs.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -721,7 +729,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (docKey == 'passport') _hasPassport = true;
       if (docKey == 'ielts') _hasIelts = true;
       if (docKey == 'cnic') _hasCnic = true;
-      if (docKey == 'income') _hasIncome = true;
+      if (docKey == 'transcript') _hasTranscript = true;
+      if (docKey == 'degree') _hasDegree = true;
     });
 
     if (mounted) {

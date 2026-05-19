@@ -105,7 +105,8 @@ export class ScholarshipService {
         has_domicile: true,
         has_passport: true,
         has_ielts: true,
-        has_income: false,
+        has_transcript: false,
+        has_degree: false,
       };
     }
 

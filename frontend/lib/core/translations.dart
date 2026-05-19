@@ -31,7 +31,8 @@ class Translations {
       'passport': 'International Passport',
       'ielts': 'IELTS/TOEFL Certificate',
       'cnic': 'CNIC/B-Form Copy',
-      'income': 'Income Certificate',
+      'transcript': 'University Transcript',
+      'degree': 'Degree Certificate',
       
       'scholarship_title': 'Matched Opportunities',
       'empty_scholarships': 'No Matched Scholarships Yet\nPlease complete profile to scan transcript and run Matcher Agent!',
@@ -85,7 +86,8 @@ class Translations {
       'passport': 'بین الاقوامی پاسپورٹ',
       'ielts': 'آئی ایل ٹی ایس / ٹافل سرٹیفکیٹ',
       'cnic': 'شناختی کارڈ / بے فارم کی کاپی',
-      'income': 'آمدنی کا سرٹیفکیٹ',
+      'transcript': 'یونیورسٹی ٹرانسکرپٹ',
+      'degree': 'ڈگری سرٹیفکیٹ',
       
       'scholarship_title': 'مطابقت پذیر مواقع',
       'empty_scholarships': 'ابھی تک کوئی مماثل اسکالرشپ نہیں ہے۔ برائے مہربانی ٹرانسکریپٹ اسکین کرنے کے لیے پروفائل مکمل کریں!',
