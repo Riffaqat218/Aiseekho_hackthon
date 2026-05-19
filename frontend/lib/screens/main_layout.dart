@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'profile/profile_screen.dart';
 import 'scholarships/scholarships_screen.dart';
+import 'about/about_us_screen.dart';
 import '../core/constants.dart';
 import '../widgets/common/language_switch.dart';
 
@@ -20,6 +21,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     const DashboardScreen(),
     const ProfileScreen(),
     const ScholarshipsScreen(),
+    const AboutUsScreen(),
   ];
 
   @override
@@ -50,6 +52,10 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           BottomNavigationBarItem(
             icon: Icon(Icons.school_rounded),
             label: 'Scholarships',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.info_outline_rounded),
+            label: 'About',
           ),
         ],
       ),

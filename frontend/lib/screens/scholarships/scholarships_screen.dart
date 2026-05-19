@@ -330,11 +330,14 @@ class _ScholarshipsScreenState extends ConsumerState<ScholarshipsScreen> with Si
       appBar: AppBar(
         title: Row(
           children: [
-            const Icon(Icons.school_rounded, color: AppConstants.primaryColor, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              Translations.getText('scholarship_title', currentLang),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+            const Icon(Icons.school_rounded, color: AppConstants.primaryColor, size: 22),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                Translations.getText('scholarship_title', currentLang),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -644,10 +647,13 @@ class ActionSimulationSheetState extends ConsumerState<ActionSimulationSheet> {
                               child: CircularProgressIndicator(strokeWidth: 2, color: AppConstants.secondaryColor),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'AGENT STATE: $_currentStep',
-                              style: const TextStyle(color: AppConstants.secondaryColor, fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
+                            Expanded(
+                               child: Text(
+                                 'AGENT STATE: $_currentStep',
+                                 style: const TextStyle(color: AppConstants.secondaryColor, fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.bold),
+                                 softWrap: true,
+                               ),
+                             ),
                           ],
                         ),
                         const SizedBox(height: 12),

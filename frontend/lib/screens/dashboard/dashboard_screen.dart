@@ -87,9 +87,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             const Icon(Icons.school_rounded, color: AppConstants.primaryColor, size: 22),
             const SizedBox(width: 6),
-            Text(
-              Translations.getText('dashboard_title', currentLang),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
+            Flexible(
+              child: Text(
+                Translations.getText('dashboard_title', currentLang),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -97,12 +100,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         elevation: 1,
         centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline_rounded, color: AppConstants.primaryColor, size: 22),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutUsScreen()));
-            },
-          ),
           const Center(child: LanguageSwitch()),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.black87, size: 22),
