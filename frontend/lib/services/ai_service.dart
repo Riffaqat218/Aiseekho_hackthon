@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
 import 'package:flutter_client_sse/flutter_client_sse.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 final aiServiceProvider = Provider<AIService>((ref) => AIService());
 
@@ -18,8 +18,7 @@ class TraceLog {
 
 class AIService {
   String get _baseUrl {
-    final isWeb = const bool.fromEnvironment('dart.library.js_util');
-    if (!isWeb && Platform.isAndroid) return 'http://10.0.2.2:3000/api/v1';
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:3000/api/v1';
     return 'http://localhost:3000/api/v1';
   }
 

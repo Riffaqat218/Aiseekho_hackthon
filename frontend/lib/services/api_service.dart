@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide MultipartFile;
 
+import 'package:flutter/foundation.dart';
+
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 class ApiService {
@@ -11,10 +13,10 @@ class ApiService {
     receiveTimeout: const Duration(seconds: 15),
   ));
   
-  // Set default IP dynamically based on platform (since Platform.isAndroid throws on web)
-  String _serverIp = const bool.fromEnvironment('dart.library.js_util') 
+  // Set default IP dynamically based on platform in a safe, web-compatible way
+  String _serverIp = kIsWeb 
       ? 'localhost' 
-      : (Platform.isAndroid ? '10.0.2.2' : 'localhost');
+      : (defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost');
   
   void setServerIp(String ip) {
     _serverIp = ip;
