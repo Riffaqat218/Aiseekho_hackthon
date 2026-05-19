@@ -867,6 +867,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               // Add to dynamic vault list
               ref.read(vaultProvider.notifier).addDoc(suggestedTag, file.name);
+              
+              // Sync with standard profile checkboxes!
+              final tagLower = suggestedTag.toLowerCase();
+              setState(() {
+                if (tagLower.contains('transcript') || tagLower.contains('mark') || tagLower.contains('result')) _hasTranscript = true;
+                if (tagLower.contains('degree')) _hasDegree = true;
+                if (tagLower.contains('cnic') || tagLower.contains('identity')) _hasCnic = true;
+                if (tagLower.contains('domicile')) _hasDomicile = true;
+                if (tagLower.contains('passport')) _hasPassport = true;
+                if (tagLower.contains('ielts') || tagLower.contains('toefl')) _hasIelts = true;
+              });
+
               // Notify user
               ScaffoldMessenger.of(this.context).showSnackBar(
                 SnackBar(
