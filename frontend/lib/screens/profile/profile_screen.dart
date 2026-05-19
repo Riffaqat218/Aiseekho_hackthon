@@ -908,8 +908,9 @@ class _SmartTaggingAnimationDialog extends StatefulWidget {
 
 class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDialog> {
   int _currentStep = 0;
-  String _detectedType = 'Statement of Purpose (SOP)';
+  String _detectedType = 'Other Custom Document';
   bool _showSuccessOption = false;
+  late TextEditingController _nameController;
 
   final List<String> _enSteps = [
     'Initializing Wazifa Ingestor...',
@@ -942,7 +943,14 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
     _runSmartTaggingLifecycle();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   void _runSmartTaggingLifecycle() async {
@@ -952,6 +960,7 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
     setState(() { _currentStep = 1; });
 
     String extractedText = '';
+    String rawOriginalText = '';
     
     // 2. Reading metadata & OCR blocks using Google ML Kit (Offline)
     if (widget.filePath != null) {
@@ -959,6 +968,7 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
         final inputImage = InputImage.fromFilePath(widget.filePath!);
         final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
         final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+        rawOriginalText = recognizedText.text;
         extractedText = recognizedText.text.toLowerCase();
         await textRecognizer.close();
       } catch (e) {
@@ -974,32 +984,48 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
     setState(() { _currentStep = 3; });
     await Future.delayed(const Duration(milliseconds: 600));
 
+    // Dynamic Title Extraction: Get the first non-empty line of the scanned OCR text!
+    String firstLine = '';
+    if (rawOriginalText.isNotEmpty) {
+      final lines = rawOriginalText.split('\n');
+      for (final line in lines) {
+        final trimmed = line.trim();
+        if (trimmed.length > 3) {
+          // Capitalize each word nicely
+          firstLine = trimmed.split(' ').map((word) => word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '').join(' ');
+          break;
+        }
+      }
+    }
+
     // Auto-detect based on extracted text (fallback to filename if empty or unreadable)
-    String detected = 'Other Custom Document';
+    String detected = firstLine.isNotEmpty ? firstLine : 'Other Custom Document';
     final textToSearch = extractedText.isNotEmpty ? extractedText : widget.fileName.toLowerCase();
 
+    // Contextual matching helpers
     if (textToSearch.contains('cnic') || textToSearch.contains('identity') || textToSearch.contains('national card') || textToSearch.contains('citizen') || textToSearch.contains('b-form') || textToSearch.contains('card')) {
-      detected = 'CNIC/B-Form Copy';
+      detected = firstLine.isNotEmpty ? firstLine : 'CNIC/B-Form Copy';
     } else if (textToSearch.contains('passport') || textToSearch.contains('pass port')) {
-      detected = 'Passport';
+      detected = firstLine.isNotEmpty ? firstLine : 'Passport';
     } else if (textToSearch.contains('domicile') || textToSearch.contains('domicil')) {
-      detected = 'Domicile';
+      detected = firstLine.isNotEmpty ? firstLine : 'Domicile';
     } else if (textToSearch.contains('recommend') || textToSearch.contains('lor') || textToSearch.contains('reference') || textToSearch.contains('dean')) {
-      detected = 'Recommendation Letter (LOR)';
+      detected = firstLine.isNotEmpty ? firstLine : 'Recommendation Letter (LOR)';
     } else if (textToSearch.contains('exp') || textToSearch.contains('work') || textToSearch.contains('employ')) {
-      detected = 'Experience Certificate';
+      detected = firstLine.isNotEmpty ? firstLine : 'Experience Certificate';
     } else if (textToSearch.contains('hope') || textToSearch.contains('expect') || textToSearch.contains('provisional')) {
-      detected = 'Hope Certificate';
+      detected = firstLine.isNotEmpty ? firstLine : 'Hope Certificate';
     } else if (textToSearch.contains('english') || textToSearch.contains('ielts') || textToSearch.contains('toefl') || textToSearch.contains('proficiency')) {
-      detected = 'English Proficiency Letter';
+      detected = firstLine.isNotEmpty ? firstLine : 'English Proficiency Letter';
     } else if (textToSearch.contains('purpose') || textToSearch.contains('motivation') || textToSearch.contains('sop')) {
-      detected = 'Statement of Purpose (SOP)';
+      detected = firstLine.isNotEmpty ? firstLine : 'Statement of Purpose (SOP)';
     }
 
     if (!mounted) return;
     setState(() {
       _currentStep = 4;
       _detectedType = detected;
+      _nameController.text = detected;
       _showSuccessOption = true;
     });
   }
@@ -1060,13 +1086,15 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.isUrdu ? 'خودکار اے آئی درجہ بندی:' : 'AI Auto-Classification:',
+                          widget.isUrdu ? 'خودکار اے آئی سمارٹ نام:' : 'AI Scanned Document Title:',
                           style: TextStyle(fontSize: 10, color: Colors.green.shade800, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           _detectedType,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -1074,12 +1102,27 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Text(
-              widget.isUrdu ? 'درجہ بندی کی تصدیق یا تبدیلی کریں:' : 'Verify or Change Tag Classification:',
+              widget.isUrdu ? 'دستاویز کا نام (آپ تبدیل بھی کر سکتے ہیں):' : 'Customize Scanned Title Name:',
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black54),
             ),
             const SizedBox(height: 8),
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.edit_note_rounded, color: AppConstants.secondaryColor),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              widget.isUrdu ? 'یا پہلے سے طے شدہ ٹیگز میں سے منتخب کریں:' : 'Or Quick Match to Predefined Tag:',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black45),
+            ),
+            const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
@@ -1094,6 +1137,7 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
                     if (newValue != null) {
                       setState(() {
                         _detectedType = newValue;
+                        _nameController.text = newValue;
                       });
                     }
                   },
@@ -1116,7 +1160,10 @@ class _SmartTaggingAnimationDialogState extends State<_SmartTaggingAnimationDial
                 child: Text(widget.isUrdu ? 'منسوخ کریں' : 'Cancel'),
               ),
               ElevatedButton(
-                onPressed: () => widget.onClassificationComplete(_detectedType),
+                onPressed: () {
+                  final finalName = _nameController.text.trim();
+                  widget.onClassificationComplete(finalName.isNotEmpty ? finalName : _detectedType);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppConstants.secondaryColor,
                   foregroundColor: Colors.white,
