@@ -9,6 +9,7 @@ import 'scholarship_details_screen.dart';
 import '../../widgets/common/language_switch.dart';
 import 'mock_form_screen.dart';
 import 'milestones_screen.dart';
+import '../../providers/vault_provider.dart';
 
 class ScholarshipsScreen extends ConsumerStatefulWidget {
   const ScholarshipsScreen({super.key});
