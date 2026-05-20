@@ -868,7 +868,13 @@ class ActionSimulationSheetState extends ConsumerState<ActionSimulationSheet> {
             children: [
               Icon(icon, color: AppConstants.primaryColor, size: 20),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  softWrap: true,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
